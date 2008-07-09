@@ -1,0 +1,19 @@
+useDynLib(lim)
+
+export(
+       adj.series,
+       calc.price.adjust,
+       dates.com,
+       day.series,
+       do.roll,
+       get.all.contract.names,
+       get.expiration.dates,
+       get.futures.contract,
+       get.rel.type,
+       get.relation,
+       get.roll.dates,
+       lim,
+       load.coml,
+       load.coms,
+       p.series
+ )
