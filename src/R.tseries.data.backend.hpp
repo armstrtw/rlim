@@ -4,8 +4,8 @@
 #include <vector>
 #include <string>
 #include <Rinternals.h>
-#include "sexp.allocator.templates.hpp"
-#include "R_utilities.hpp"
+#include <Rsexp.allocator.templates.hpp>
+#include <Rutilities.hpp>
 
 
 using std::vector;

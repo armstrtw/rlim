@@ -7,5 +7,5 @@ XMIM_LIB     = xmim
 
 PKG_LIBS     = -L$(XMIM_LIBDIR) -l$(XMIM_LIB) -lm -lnsl -lform
 
-PKG_CFLAGS   = -I$(XMIM_INCDIR) -I$(TSLIB_DIR)
+PKG_CFLAGS   = -I$(XMIM_INCDIR)
 PKG_CXXFLAGS = $(PKG_CFLAGS) -I./tslib -I./RAbstraction

@@ -5,7 +5,7 @@
 reads any tseries type object form LIM
 }
 \usage{
-get.relation(contract, colnames = NULL, from.date = NULL, units = "days", bars = 1)
+get.relation(contract, colnames = NULL, units = "days", bars = 1)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -21,7 +21,7 @@ tseries object
 \references{LIM}
 \author{Whit}
 \examples{
-x <- get.relation("EURJPY")
+x <- get.relation("IBM")
 tail(x)
 }
 \keyword{ts}

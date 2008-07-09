@@ -27,12 +27,12 @@ get.futures.contract <- function(	contract,
 }
 
 ## setting colnames to NULL will allow it to load all cols
-get.relation <- function(	contract,
+get.relation <- function(contract,
                          colnames=NULL,
-                         from.date=NULL,
                          units="days",
-                         bars=1) {
-  .Call("getLimRelation",contract,colnames,from.date, units, as.integer(bars),PACKAGE="RLIM")
+                         bars=1)
+{
+  .Call("getRelation", contract, colnames, units, as.integer(bars), PACKAGE="RLIM")
 }
 
 get.all.contract.names <- function(ticker,units="days",bars=1) {

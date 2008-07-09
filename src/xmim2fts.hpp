@@ -20,7 +20,7 @@
 
 #include <xmim_api.h>
 #include <tslib/tseries.hpp>
-#include <tslib/date.policies/posix.date.policy.hpp>
+//#include <tslib/date.policies/posix.date.policy.hpp>
 
 using namespace tslib;
 
