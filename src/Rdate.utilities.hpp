@@ -15,13 +15,16 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-// exported functions
-extern "C" {
-  void R_init_RLIM(DllInfo *info);
-  void R_unload_RLIM(DllInfo *info);
-  SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, SEXP bars_sexp);
-  SEXP getContracts(SEXP genericContract_sexp, SEXP units_sexp, SEXP bars_sexp);
-}
+#ifndef RDATE_UTILITIES_HPP
+#define RDATE_UTILITIES_HPP
 
-XmimUnits getUnits(string units);
-void sexp2string(const SEXP str_sexp,std::vector<std::string>& ans);
+#include <Rinternals.h>
+
+void addPOSIXattributes(SEXP x);
+void addFtsClass(SEXP x);
+void addDates(SEXP r_object,SEXP r_dates);
+void setDates(SEXP x, SEXP dates);
+SEXP getDatesSEXP(const SEXP x);
+
+
+#endif // RDATE_UTILITIES_HPP

@@ -76,6 +76,8 @@ namespace rlim {
                                XMIM_END_ARGS);
 
     // free our colnames array
+    for(i = 0; i < num_columns; i++)
+      free(xmim_columns[i]);
     delete []xmim_columns;
 
     // return empty fts if we encounter an error

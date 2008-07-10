@@ -1,3 +1,4 @@
 useDynLib(RLIM)
 
-export(get.relation)
+export(get.relation,
+       get.contracts)

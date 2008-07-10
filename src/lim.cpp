@@ -32,22 +32,35 @@ using std::endl;
 
 namespace rlim {
 
+  const std::string safe_getenv(const char* env_var) {
+    std::string ans;
+
+    const char* var = getenv(env_var);
+
+    // only set ans if var is not NULL
+    if(var) {
+      ans.assign(var);
+    }
+
+    return ans;
+  }
+
+
   const XmimClientHandle limConnect() {
     XmimClientHandle handle;
 
-    char* lim_server = static_cast<char*>(getenv("LIM_SERVER"));
-    int lim_port = atoi(getenv("LIM_PORT"));
+    const string lim_server = safe_getenv("LIM_SERVER");
+    const int lim_port = atoi(safe_getenv("LIM_PORT").c_str());
 
     cout << "connecting to LIM on server: " << lim_server <<  " on port " << lim_port << endl;
 
     // connect to LIM
-    if (lim_server!=NULL && XmimConnect (lim_server, lim_port, &handle) != XMIM_SUCCESS) {
+    if (lim_server.size() && XmimConnect (const_cast<char*>(lim_server.c_str()), lim_port, &handle) != XMIM_SUCCESS) {
       cout << "problem connecting to LIM." << endl;
       cout << "make sure LIM_SERVER and LIM_PORT are set in your environment." << endl;
-      return static_cast<XmimClientHandle>(0);
-    } else {
-      return handle;
-    }
+      handle = static_cast<XmimClientHandle>(0);
+    }        
+    return handle;
   }
 
   const XmimRelType getRelationType(const XmimClientHandle& handle, const string& relname) {
@@ -70,8 +83,9 @@ namespace rlim {
 
     for(set<string>::iterator it = tickers.begin(); it != tickers.end(); it++ ) {
       reltype = getRelationType(handle, *it);
-      if(reltype != XMIM_REL_FUTURES_CONTRACT || getRelationNROWS(handle, *it, units, bars) < 1)
+      if(reltype != XMIM_REL_FUTURES_CONTRACT || getRelationNROWS(handle, *it, units, bars) < 1) {
         tickers.erase(it);
+      }
     }
 
     ans.clear();

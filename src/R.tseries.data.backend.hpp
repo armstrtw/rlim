@@ -6,6 +6,7 @@
 #include <Rinternals.h>
 #include <Rsexp.allocator.templates.hpp>
 #include <Rutilities.hpp>
+#include "Rdate.utilities.hpp"
 
 
 using std::vector;
@@ -124,14 +125,14 @@ void R_Backend_TSdata<TDATE,TDATA,TSDIM>::setColnames(const vector<string>& cnam
   if(static_cast<TSDIM>(cnames.size()) != ncols(R_object)) {
     return;
   }
-  setColnamesMatrix(R_object, cnames);
+  setColnamesMatrix(R_object, cnames.begin(),cnames.end());
 }
 
 template <typename TDATE,typename TDATA, typename TSDIM>
 inline
 vector<string> R_Backend_TSdata<TDATE,TDATA,TSDIM>::getColnames() const {
   vector<string> ans;
-  getColnamesMatrix(R_object,ans);
+  getColnamesMatrix(R_object,inserter(ans, ans.begin()));
   return ans;
 }
 

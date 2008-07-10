@@ -26,6 +26,7 @@
 
 namespace rlim {
 
+  const std::string safe_getenv(const char* env_var);
   const XmimClientHandle limConnect();
   const XmimRelType getRelationType(const XmimClientHandle& handle, const std::string& relname);
   void getContracts(const XmimClientHandle& handle, std::set<std::string>& ans, const std::string& genericContract, const XmimUnits units, const int bars);

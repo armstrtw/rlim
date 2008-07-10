@@ -15,13 +15,38 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-// exported functions
-extern "C" {
-  void R_init_RLIM(DllInfo *info);
-  void R_unload_RLIM(DllInfo *info);
-  SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, SEXP bars_sexp);
-  SEXP getContracts(SEXP genericContract_sexp, SEXP units_sexp, SEXP bars_sexp);
+#include "Rdate.utilities.hpp"
+
+void addPOSIXattributes(SEXP x) {
+  SEXP r_dates_class;
+
+  PROTECT(r_dates_class = allocVector(STRSXP, 2));
+  SET_STRING_ELT(r_dates_class, 0, mkChar("POSIXt"));
+  SET_STRING_ELT(r_dates_class, 1, mkChar("POSIXct"));
+  classgets(x, r_dates_class);
+  UNPROTECT(1);
 }
 
-XmimUnits getUnits(string units);
-void sexp2string(const SEXP str_sexp,std::vector<std::string>& ans);
+void addFtsClass(SEXP x) {
+  SEXP r_tseries_class;
+  PROTECT(r_tseries_class = allocVector(STRSXP, 2));
+  SET_STRING_ELT(r_tseries_class, 0, mkChar("fts"));
+  SET_STRING_ELT(r_tseries_class, 1, mkChar("matrix"));
+  classgets(x, r_tseries_class);
+  UNPROTECT(1);
+}
+
+void addDates(SEXP r_object,SEXP r_dates) {
+  if(r_dates==R_NilValue) {
+    return;
+  }
+  setAttrib(r_object,install("dates"),r_dates);
+}
+
+void setDates(SEXP x, SEXP dates) {
+  setAttrib(x,install("dates"),dates);
+}
+
+SEXP getDatesSEXP(const SEXP x) {
+  return getAttrib(x,install("dates"));
+}

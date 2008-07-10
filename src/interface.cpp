@@ -22,9 +22,9 @@
 
 #include <tslib/tseries.hpp>
 #include <Rtype.hpp>
+#include <Rutilities.hpp>
 
 #include "lim.hpp"
-#include "Rutilities.hpp"
 #include "R.tseries.data.backend.hpp"
 #include "get.relation.hpp"
 
@@ -54,7 +54,7 @@ SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, S
   string relation_name = Rtype<STRSXP>::scalar(relation_name_sexp);
 
   vector<string> colnames;
-  sexp2string(colnames_sexp,colnames);
+  sexp2string(colnames_sexp,inserter(colnames,colnames.begin()));
 
   XmimDate from_date;
   from_date.year  = 1900;
@@ -73,6 +73,18 @@ SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, S
 
   return ans.getIMPL()->R_object;
 }
+
+
+SEXP getContracts(SEXP genericContract_sexp, SEXP units_sexp, SEXP bars_sexp) {
+  std::set<std::string> ans;
+
+  string genericContract = Rtype<STRSXP>::scalar(genericContract_sexp);
+  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
+  int bars = Rtype<INTSXP>::scalar(bars_sexp);
+
+  rlim::getContracts(handle, ans, genericContract, xmim_units, bars);
+}
+
 
 
 XmimUnits getUnits(string units) {
