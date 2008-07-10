@@ -1,4 +1,4 @@
 useDynLib(RLIM)
 
 export(get.relation,
-       get.contracts)
+       get.all.children)
