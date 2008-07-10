@@ -42,6 +42,9 @@ namespace rlim {
 
              // allocate new answer
              TSeries<TDATE,TDATA,TSDIM,TSDATABACKEND,DatePolicy> ans(num_records, num_columns);
+
+             // set colnames
+             ans.setColnames(colnames);
   
              TDATA* ans_data = ans.getData();  
              TDATE* ans_dates = ans.getDates();  
