@@ -24,8 +24,6 @@
 #include <xmim_api.h>
 #include "lim.hpp"
 
-using std::set;
-using std::map;
 using std::string;
 using std::cout;
 using std::endl;
@@ -67,21 +65,20 @@ namespace rlim {
     XmimRelType reltype;
 
     if(XmimGetRelType (handle, const_cast<char*>(relname), &reltype) != XMIM_SUCCESS) {
-      XmimPrintError("getRelationType");
-      return XMIM_REL_INVALID;
-    } else {
-      return reltype;
+      XmimPrintError("XmimGetRelType");
+      reltype = XMIM_REL_INVALID;
     }
+    return reltype;
   }
 
   /* Returns a list of the names of all the contracts available from the LIM */
   void getContracts(const XmimClientHandle& handle, std::set<string>& ans, const char* relname, const XmimUnits units, const int bars) {
     XmimRelType reltype;
-    set<string> tickers;
+    std::set<string> tickers;
 
     getAllChildren(handle, tickers, relname);
 
-    for(set<string>::iterator it = tickers.begin(); it != tickers.end(); it++ ) {
+    for(std::set<string>::iterator it = tickers.begin(); it != tickers.end(); it++ ) {
       reltype = getRelationType(handle, it->c_str());
       if(reltype != XMIM_REL_FUTURES_CONTRACT || getRelationNROWS(handle, it->c_str(), units, bars) < 1) {
         tickers.erase(it);
@@ -101,7 +98,8 @@ namespace rlim {
     int num_relnames;
     XmimString* relnames;
 
-    if (XmimGetRelChildren (handle, const_cast<char*>(relname), &num_relnames, &relnames) != XMIM_SUCCESS) {
+    if(XmimGetRelChildren(handle, const_cast<char*>(relname), &num_relnames, &relnames) != XMIM_SUCCESS) {
+      XmimPrintError("XmimGetRelChildren");
       return;
     }
 
@@ -151,7 +149,7 @@ namespace rlim {
     return contracts[m-1];
   }
 
-  void getRollDates(const XmimClientHandle& handle, map<string,XmimDate>& ans, const char* relname, const char* rollDay) {
+  void getRollDates(const XmimClientHandle& handle, std::map<std::string,XmimDate>& ans, const char* relname, const char* rollDay) {
 
     int numContracts, numPeriods;
     XmimDate *rollDates, *contracts;
@@ -173,9 +171,8 @@ namespace rlim {
     }
 
     for(int i = 0; i < numPeriods; i++) {
-      // FIXME: why is it i+1 in contracts[]
       makeContractName(contracts[i].year,contracts[i].month,contractName);
-      ans[contractName] = rollDates[i+1];
+      ans[contractName] = rollDates[i];
     }
   }
 
