@@ -64,25 +64,20 @@ SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, S
   XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
   int bars = Rtype<INTSXP>::scalar(bars_sexp);
 
-  ts_type ans = rlim::getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,
-                                                                          relation_name,
-                                                                          colnames,
-                                                                          from_date,
-                                                                          xmim_units,
-                                                                          bars);
+  ts_type ans = rlim::getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),colnames,from_date,xmim_units,bars);
 
   return ans.getIMPL()->R_object;
 }
 
 
-SEXP getContracts(SEXP genericContract_sexp, SEXP units_sexp, SEXP bars_sexp) {
+SEXP getAllChildren(SEXP relname_sexp) {
+  SEXP ans_sexp;
   std::set<std::string> ans;
 
-  string genericContract = Rtype<STRSXP>::scalar(genericContract_sexp);
-  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
-  int bars = Rtype<INTSXP>::scalar(bars_sexp);
+  std::string relname = Rtype<STRSXP>::scalar(relname_sexp);
 
-  rlim::getContracts(handle, ans, genericContract, xmim_units, bars);
+  rlim::getAllChildren(handle, ans, relname.c_str());
+  return string2sexp(ans.begin(),ans.end());
 }
 
 
