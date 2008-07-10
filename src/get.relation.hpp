@@ -37,15 +37,20 @@ namespace rlim {
   const TSeries<TDATE,TDATA,TSDIM,TSDATABACKEND,DatePolicy> getRelation(const XmimClientHandle& handle,
                                                                         const char* relname,
                                                                         const std::vector<std::string>& colnames,
-                                                                        const XmimDate from_date,
                                                                         const XmimUnits xunits,
-                                                                        const int bars) {
+                                                                        const int bars)
+  {
 
     int num_columns, num_records;
     float* values;
     XmimDateTime* dates;
   
     XmimReturnCode retCode;
+
+    XmimDate from_date;
+    from_date.year  = 1900;
+    from_date.month = 1;
+    from_date.day   = 1;
 
     num_columns = colnames.size();
 

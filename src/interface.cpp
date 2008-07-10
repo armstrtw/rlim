@@ -56,15 +56,10 @@ SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, S
   vector<string> colnames;
   sexp2string(colnames_sexp,inserter(colnames,colnames.begin()));
 
-  XmimDate from_date;
-  from_date.year  = 1900;
-  from_date.month = 1;
-  from_date.day   = 1;
-    
   XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
   int bars = Rtype<INTSXP>::scalar(bars_sexp);
 
-  ts_type ans = rlim::getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),colnames,from_date,xmim_units,bars);
+  ts_type ans = rlim::getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),colnames,xmim_units,bars);
 
   return ans.getIMPL()->R_object;
 }
