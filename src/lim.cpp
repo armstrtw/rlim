@@ -38,7 +38,7 @@ namespace rlim {
     char* lim_server = static_cast<char*>(getenv("LIM_SERVER"));
     int lim_port = atoi(getenv("LIM_PORT"));
 
-    cout << "connecting to LIM on server: " << lim_server <<  ":" << lim_port << endl;
+    cout << "connecting to LIM on server: " << lim_server <<  " on port " << lim_port << endl;
 
     // connect to LIM
     if (lim_server!=NULL && XmimConnect (lim_server, lim_port, &handle) != XMIM_SUCCESS) {
