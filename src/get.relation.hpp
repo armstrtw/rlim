@@ -21,12 +21,8 @@
 
 #include <vector>
 #include <string>
-#include <iostream>
-#include <ctime>
-
 #include <xmim_api.h>
 #include <tslib/tseries.hpp>
-
 #include "xmim2fts.hpp"
 
 using namespace tslib;
@@ -39,7 +35,7 @@ namespace rlim {
            template<typename,typename,typename> class TSDATABACKEND,
            template<typename> class DatePolicy>
   const TSeries<TDATE,TDATA,TSDIM,TSDATABACKEND,DatePolicy> getRelation(const XmimClientHandle& handle,
-                                                                        const std::string& relname,
+                                                                        const char* relname,
                                                                         const std::vector<std::string>& colnames,
                                                                         const XmimDate from_date,
                                                                         const XmimUnits xunits,
@@ -65,7 +61,7 @@ namespace rlim {
     }
     
     retCode = XmimVaGetRecords(XMIM_CLIENT_HANDLE, handle,
-                               XMIM_RELATION, const_cast<char*>(relname.c_str()),
+                               XMIM_RELATION, const_cast<char*>(relname),
                                XMIM_COLUMN_ARRAY, num_columns, xmim_columns,
                                XMIM_FROM_DATE, from_date,
                                XMIM_UNITS, bars, xunits,
