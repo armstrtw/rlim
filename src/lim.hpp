@@ -28,17 +28,17 @@ namespace rlim {
 
   const std::string safe_getenv(const char* env_var);
   const XmimClientHandle limConnect();
-  const XmimRelType getRelationType(const XmimClientHandle& handle, const std::string& relname);
-  void getContracts(const XmimClientHandle& handle, std::set<std::string>& ans, const std::string& genericContract, const XmimUnits units, const int bars);
-  void getAllChildren(const XmimClientHandle& handle, std::set<std::string>& ans,  const std::string& ticker);
+  const XmimRelType getRelationType(const XmimClientHandle& handle, const char* relname);
+  void getContracts(const XmimClientHandle& handle, std::set<std::string>& ans, const char* genericContract, const XmimUnits units, const int bars);
+  void getAllChildren(const XmimClientHandle& handle, std::set<std::string>& ans, const char* ticker);
   const int getContractMonth(const char letter);
   const char getContractLetter(const int m);
-  void getRollDates(const XmimClientHandle& handle, std::map<std::string,XmimDate>& ans, const std::string& ticker, const std::string& rollDay);
-  const std::string makeContractName(const int year, const int month);
-  const int getRelationNROWS(const XmimClientHandle& handle, const std::string& ticker, const XmimUnits xunits, const int bars);
+  void getRollDates(const XmimClientHandle& handle, std::map<std::string,XmimDate>& ans, const char* ticker, const char* rollDay);
+  void makeContractName(const int year, const int month, std::string& ans);
+  const int getRelationNROWS(const XmimClientHandle& handle, const char* ticker, const XmimUnits xunits, const int bars);
   const XmimDate get_expiration_date(const XmimClientHandle& handle, const char* contract);
   const XmimDate getFirstNoticeDate(const XmimClientHandle& handle, const char* contract);
-  const bool isFuturesContract(const std::string& relname);
+  const bool isFuturesContract(const char* relname);
 
 } // namespace rlim
 

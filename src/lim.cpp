@@ -63,10 +63,10 @@ namespace rlim {
     return handle;
   }
 
-  const XmimRelType getRelationType(const XmimClientHandle& handle, const string& relname) {
+  const XmimRelType getRelationType(const XmimClientHandle& handle, const char* relname) {
     XmimRelType reltype;
 
-    if(XmimGetRelType (handle, const_cast<char*>(relname.c_str()), &reltype) != XMIM_SUCCESS) {
+    if(XmimGetRelType (handle, const_cast<char*>(relname), &reltype) != XMIM_SUCCESS) {
       XmimPrintError("getRelationType");
       return XMIM_REL_INVALID;
     } else {
@@ -75,15 +75,15 @@ namespace rlim {
   }
 
   /* Returns a list of the names of all the contracts available from the LIM */
-  void getContracts(const XmimClientHandle& handle, std::set<string>& ans, const string& genericContract, const XmimUnits units, const int bars) {
+  void getContracts(const XmimClientHandle& handle, std::set<string>& ans, const char* relname, const XmimUnits units, const int bars) {
     XmimRelType reltype;
     set<string> tickers;
 
-    getAllChildren(handle, tickers, genericContract);
+    getAllChildren(handle, tickers, relname);
 
     for(set<string>::iterator it = tickers.begin(); it != tickers.end(); it++ ) {
-      reltype = getRelationType(handle, *it);
-      if(reltype != XMIM_REL_FUTURES_CONTRACT || getRelationNROWS(handle, *it, units, bars) < 1) {
+      reltype = getRelationType(handle, it->c_str());
+      if(reltype != XMIM_REL_FUTURES_CONTRACT || getRelationNROWS(handle, it->c_str(), units, bars) < 1) {
         tickers.erase(it);
       }
     }
@@ -96,12 +96,12 @@ namespace rlim {
   }
 
   /* Returns a list of the names of all the contracts available from the LIM */
-  void getAllChildren(const XmimClientHandle& handle, std::set<string>& ans,  const string& ticker) {
+  void getAllChildren(const XmimClientHandle& handle, std::set<string>& ans, const char* relname) {
 
     int num_relnames;
     XmimString* relnames;
 
-    if (XmimGetRelChildren (handle, const_cast<char*>(ticker.c_str()), &num_relnames, &relnames) != XMIM_SUCCESS) {
+    if (XmimGetRelChildren (handle, const_cast<char*>(relname), &num_relnames, &relnames) != XMIM_SUCCESS) {
       return;
     }
 
@@ -151,16 +151,17 @@ namespace rlim {
     return contracts[m-1];
   }
 
-  void getRollDates(const XmimClientHandle& handle, map<string,XmimDate>& ans, const string& ticker, const string& rollDay) {
+  void getRollDates(const XmimClientHandle& handle, map<string,XmimDate>& ans, const char* relname, const char* rollDay) {
 
     int numContracts, numPeriods;
     XmimDate *rollDates, *contracts;
+    std::string contractName;
 
     if(XmimVaGetRolloverDates (XMIM_CLIENT_HANDLE, handle,
-                               XMIM_RELATION, const_cast<char*>(ticker.c_str()),
+                               XMIM_RELATION, const_cast<char*>(relname),
                                XMIM_COLUMN_LIST, NULL,
                                XMIM_UNITS, 1, XMIM_DAYS,
-                               XMIM_ROLLOVER_DAY, const_cast<char*>(rollDay.c_str()),
+                               XMIM_ROLLOVER_DAY, const_cast<char*>(rollDay),
                                XMIM_NUM_CONTRACTS, &numContracts,
                                XMIM_NUM_PERIODS, &numPeriods,
                                XMIM_ROLL_DATES, &rollDates,
@@ -173,27 +174,28 @@ namespace rlim {
 
     for(int i = 0; i < numPeriods; i++) {
       // FIXME: why is it i+1 in contracts[]
-      ans[makeContractName(contracts[i].year,contracts[i].month)] = rollDates[i+1];
+      makeContractName(contracts[i].year,contracts[i].month,contractName);
+      ans[contractName] = rollDates[i+1];
     }
   }
 
   /* create a yyyymm string from integers year and month */
-  const string makeContractName(const int year, const int month) {
+  void makeContractName(const int year, const int month, std::string& ans) {
 
     char year_buff[5];
-    sprintf(year_buff,"%d",year);
+    snprintf(year_buff,5,"%d",year);
     string year_str(year_buff);
 
     string month_str(1,getContractLetter(month));
 
-    return year_str + month_str;
+    ans.assign(year_str + month_str);
   }
 
 
   // get the number of rows for a given individual futures contract
   // some contracts have no rows (stupid LIM), so we don't want to include those in our allocation
   // of storage space
-  const int getRelationNROWS(const XmimClientHandle& handle, const string& ticker, const XmimUnits xunits, const int bars) {
+  const int getRelationNROWS(const XmimClientHandle& handle, const char* relname, const XmimUnits xunits, const int bars) {
 
     XmimDateTime *dates;
     XmimDate from_date;
@@ -205,7 +207,7 @@ namespace rlim {
     from_date.year = 1900;
 
     if( XmimVaGetRecords(XMIM_CLIENT_HANDLE, handle,
-                         XMIM_RELATION, const_cast<char*>(ticker.c_str()),
+                         XMIM_RELATION, const_cast<char*>(relname),
                          XMIM_FROM_DATE, from_date,
                          XMIM_NUM_RECORDS, &num_records,
                          XMIM_VALUES, &values,
@@ -252,10 +254,10 @@ namespace rlim {
     return first_notice_date;
   }
 
-  const bool isFuturesContract(const XmimClientHandle& handle, const string& relname) {
+  const bool isFuturesContract(const XmimClientHandle& handle, const char* relname) {
     XmimRelType reltype;
 
-    if(XmimGetRelType(handle, const_cast<char*>(relname.c_str()), &reltype)!=XMIM_SUCCESS) {
+    if(XmimGetRelType(handle, const_cast<char*>(relname), &reltype)!=XMIM_SUCCESS) {
       XmimPrintError("XmimGetRelType");
       return false;
     }
