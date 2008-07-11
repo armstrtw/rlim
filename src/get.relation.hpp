@@ -40,19 +40,16 @@ namespace rlim {
                                                                         const XmimUnits xunits,
                                                                         const int bars)
   {
-
-    int num_columns, num_records;
-    float* values;
-    XmimDateTime* dates;
-  
+    int num_columns = colnames.size();
+    int num_records = 0;
+    float* values = NULL;
+    XmimDateTime* dates = NULL;
     XmimReturnCode retCode;
-
     XmimDate from_date;
+
     from_date.year  = 1900;
     from_date.month = 1;
     from_date.day   = 1;
-
-    num_columns = colnames.size();
 
     // return empty fts if no colnames supplied
     if(!num_columns) {
@@ -64,7 +61,7 @@ namespace rlim {
     for(vector<std::string>::const_iterator it = colnames.begin(); it != colnames.end(); it++, i++) {
       xmim_columns[i] = strdup(it->c_str());
     }
-    
+
     retCode = XmimVaGetRecords(XMIM_CLIENT_HANDLE, handle,
                                XMIM_RELATION, const_cast<char*>(relname),
                                XMIM_COLUMN_ARRAY, num_columns, xmim_columns,
@@ -73,7 +70,7 @@ namespace rlim {
                                XMIM_NUM_RECORDS, &num_records,
                                XMIM_DATE_TIMES, &dates,
                                XMIM_VALUES, &values,
-                               XMIM_FILL_OPTION,  XMIM_FILL_NAN, XMIM_FILL_NAN, XMIM_SKIP_ALL_NAN,
+                               XMIM_FILL_OPTION, XMIM_FILL_NAN, XMIM_FILL_NAN, XMIM_SKIP_ALL_NAN,
                                XMIM_END_ARGS);
 
     // free our colnames array
@@ -90,6 +87,58 @@ namespace rlim {
     return xmim2fts<TDATE,TDATA,TSDIM,TSDATABACKEND,DatePolicy>(num_records, num_columns, values, dates, colnames);
   }
 
-} // namespace rlim 
+  template<class TDATE,
+           class TDATA,
+           class TSDIM,
+           template<typename,typename,typename> class TSDATABACKEND,
+           template<typename> class DatePolicy>
+  const TSeries<TDATE,TDATA,TSDIM,TSDATABACKEND,DatePolicy> getRelationAllCols(const XmimClientHandle& handle,
+                                                                               const char* relname,
+                                                                               const XmimUnits xunits,
+                                                                               const int bars)
+  {
+    int num_columns = 0;
+    int num_records = 0;
+
+    float* values = NULL;
+    XmimDateTime* dates = NULL;
+    XmimReturnCode retCode;
+
+    XmimDate from_date;
+    from_date.year  = 1900;
+    from_date.month = 1;
+    from_date.day   = 1;
+
+    XmimString* xmim_columns = NULL;
+    std::vector<std::string> colnames;
+
+    retCode = XmimVaGetRecordsAllColumns(XMIM_CLIENT_HANDLE, handle,
+                                         XMIM_RELATION, const_cast<char*>(relname),
+                                         XMIM_COLUMN_ARRAY, &num_columns, &xmim_columns,
+                                         XMIM_FROM_DATE, from_date,
+                                         XMIM_UNITS, bars, xunits,
+                                         XMIM_NUM_RECORDS, &num_records,
+                                         XMIM_DATE_TIMES, &dates,
+                                         XMIM_VALUES, &values,
+                                         XMIM_FILL_OPTION, XMIM_FILL_NAN, XMIM_FILL_NAN, XMIM_SKIP_ALL_NAN,
+                                         XMIM_END_ARGS);
+
+    // return empty fts if we encounter an error
+    if(retCode!=XMIM_SUCCESS) {
+      XmimPrintError("XmimVaGetRecords");
+      return TSeries<TDATE,TDATA,TSDIM,TSDATABACKEND,DatePolicy>();
+    }
+
+    // copy colnames
+    // it's not necessary to free memory that LIM allocated
+    // see Ch 13.4 of devel guide (page 198 of the May 30, 2008 version)
+    // http://customers.lim.com/pdfdocs/data_dev_guide.pdf
+    for(int i = 0; i < num_columns; i++) {
+      colnames.push_back(xmim_columns[i]);
+    }
+    return xmim2fts<TDATE,TDATA,TSDIM,TSDATABACKEND,DatePolicy>(num_records, num_columns, values, dates, colnames);
+  }
+
+} // namespace rlim
 
 #endif // GET_RELATION_HPP
