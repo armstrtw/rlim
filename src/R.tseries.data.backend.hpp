@@ -6,11 +6,6 @@
 #include <Rinternals.h>
 #include <Rsexp.allocator.templates.hpp>
 #include <Rutilities.hpp>
-#include "Rdate.utilities.hpp"
-
-
-using std::vector;
-using std::string;
 
 template <typename TDATE,typename TDATA, typename TSDIM = long>
 class R_Backend_TSdata {
@@ -48,8 +43,8 @@ public:
   TSDIM ncol() const;
   TDATA* getData() const;
   TDATE* getDates() const;
-  void setColnames(const vector<string>& cnames);
-  vector<string> getColnames() const;
+  void setColnames(const std::vector<std::string>& cnames);
+  std::vector<std::string> getColnames() const;
   const size_t getColnamesSize() const;
 };
 
@@ -79,11 +74,26 @@ R_Backend_TSdata<TDATE,TDATA,TSDIM>::R_Backend_TSdata(const TSDIM rows, const TS
 
   PROTECT(R_object = R_allocator<TDATA>::Matrix(rows, cols));
   PROTECT(R_dates  = R_allocator<TDATE>::Vector(rows));
-  addPOSIXattributes(R_dates);
-  setDates(R_object,R_dates);
-  addFtsClass(R_object);
 
-  UNPROTECT(1); // dates only
+  // attach dates to R_object
+  setAttrib(R_object,install("dates"),R_dates);
+  UNPROTECT(1); // we can unprotect dates now
+
+  // create and add dates class to dates object
+  SEXP r_dates_class;
+  PROTECT(r_dates_class = allocVector(STRSXP, 2));
+  SET_STRING_ELT(r_dates_class, 0, mkChar("POSIXt"));
+  SET_STRING_ELT(r_dates_class, 1, mkChar("POSIXct"));
+  classgets(R_dates, r_dates_class);
+  UNPROTECT(1); // r_dates_class
+
+  // add fts class to R_object
+  SEXP r_tseries_class;
+  PROTECT(r_tseries_class = allocVector(STRSXP, 2));
+  SET_STRING_ELT(r_tseries_class, 0, mkChar("fts"));
+  SET_STRING_ELT(r_tseries_class, 1, mkChar("matrix"));
+  classgets(R_object, r_tseries_class);
+  UNPROTECT(1); // r_tseries_class
 }
 
 template <typename TDATE,typename TDATA, typename TSDIM>
@@ -121,7 +131,7 @@ void R_Backend_TSdata<TDATE,TDATA,TSDIM>::detach() {
 }
 
 template <typename TDATE,typename TDATA, typename TSDIM>
-void R_Backend_TSdata<TDATE,TDATA,TSDIM>::setColnames(const vector<string>& cnames) {
+void R_Backend_TSdata<TDATE,TDATA,TSDIM>::setColnames(const std::vector<std::string>& cnames) {
   if(static_cast<TSDIM>(cnames.size()) != ncols(R_object)) {
     return;
   }
@@ -130,8 +140,8 @@ void R_Backend_TSdata<TDATE,TDATA,TSDIM>::setColnames(const vector<string>& cnam
 
 template <typename TDATE,typename TDATA, typename TSDIM>
 inline
-vector<string> R_Backend_TSdata<TDATE,TDATA,TSDIM>::getColnames() const {
-  vector<string> ans;
+std::vector<std::string> R_Backend_TSdata<TDATE,TDATA,TSDIM>::getColnames() const {
+  std::vector<std::string> ans;
   getColnamesMatrix(R_object,inserter(ans, ans.begin()));
   return ans;
 }
@@ -148,7 +158,7 @@ TDATA* R_Backend_TSdata<TDATE,TDATA,TSDIM>::getData() const {
 
 template <typename TDATE,typename TDATA, typename TSDIM>
 TDATE* R_Backend_TSdata<TDATE,TDATA,TSDIM>::getDates() const {
-  return R_allocator<TDATE>::R_dataPtr(getDatesSEXP(R_object));
+  return R_allocator<TDATE>::R_dataPtr(getAttrib(R_object,install("dates")));
 }
 
 template <typename TDATE,typename TDATA, typename TSDIM>
