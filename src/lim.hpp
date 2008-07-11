@@ -36,7 +36,7 @@ namespace rlim {
   void getRollDates(const XmimClientHandle& handle, std::map<std::string,XmimDate>& ans, const char* ticker, const char* rollDay);
   void makeContractName(const int year, const int month, std::string& ans);
   const int getRelationNROWS(const XmimClientHandle& handle, const char* ticker, const XmimUnits xunits, const int bars);
-  const XmimDate get_expiration_date(const XmimClientHandle& handle, const char* contract);
+  const XmimDate getExpirationDate(const XmimClientHandle& handle, const char* contract);
   const XmimDate getFirstNoticeDate(const XmimClientHandle& handle, const char* contract);
   const bool isFuturesContract(const char* relname);
 

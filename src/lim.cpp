@@ -218,7 +218,7 @@ namespace rlim {
     return num_records;
   }
 
-  const XmimDate get_expiration_date(const XmimClientHandle& handle, const char* contract) {
+  const XmimDate getExpirationDate(const XmimClientHandle& handle, const char* contract) {
     XmimDate ex_date;
 
     if(XmimVaGetRelation (XMIM_CLIENT_HANDLE, handle,
