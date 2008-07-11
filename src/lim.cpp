@@ -73,15 +73,15 @@ namespace rlim {
 
   /* Returns a list of the names of all the contracts available from the LIM */
   void getContracts(const XmimClientHandle& handle, std::set<string>& ans, const char* relname, const XmimUnits units, const int bars) {
-    XmimRelType reltype;
     std::set<string> tickers;
 
+    // read in all children
     getAllChildren(handle, tickers, relname);
 
+    // drop out continuous contracts and such
+    // only accept actual futures contracts
     for(std::set<string>::iterator it = tickers.begin(); it != tickers.end(); it++ ) {
-      reltype = getRelationType(handle, it->c_str());
-      if(reltype == XMIM_REL_FUTURES_CONTRACT &&
-         getRelationNROWS(handle, it->c_str(), units, bars) > 0) {
+      if(getRelationType(handle, it->c_str()) == XMIM_REL_FUTURES_CONTRACT) {
         ans.insert(*it);
       }
     }
@@ -181,36 +181,6 @@ namespace rlim {
     string month_str(1,getContractLetter(month));
 
     ans.assign(year_str + month_str);
-  }
-
-
-  // get the number of rows for a given individual futures contract
-  // some contracts have no rows (stupid LIM), so we don't want to include those in our allocation
-  // of storage space
-  const int getRelationNROWS(const XmimClientHandle& handle, const char* relname, const XmimUnits xunits, const int bars) {
-
-    XmimDateTime *dates;
-    XmimDate from_date;
-    int num_records;
-    float values;
-
-    from_date.month = 1;
-    from_date.day = 1;
-    from_date.year = 1900;
-
-    if( XmimVaGetRecords(XMIM_CLIENT_HANDLE, handle,
-                         XMIM_RELATION, const_cast<char*>(relname),
-                         XMIM_FROM_DATE, from_date,
-                         XMIM_NUM_RECORDS, &num_records,
-                         XMIM_VALUES, &values,
-                         XMIM_DATE_TIMES, &dates,
-                         XMIM_UNITS, bars, xunits,
-                         XMIM_FILL_OPTION,  XMIM_FILL_NAN, XMIM_FILL_NAN, XMIM_SKIP_ALL_NAN,
-                         XMIM_END_ARGS) != XMIM_SUCCESS) {
-      return -1;
-    }
-
-    return num_records;
   }
 
   const XmimDate getExpirationDate(const XmimClientHandle& handle, const char* contract) {
