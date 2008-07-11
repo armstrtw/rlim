@@ -20,6 +20,7 @@ extern "C" {
   void R_init_RLIM(DllInfo *info);
   void R_unload_RLIM(DllInfo *info);
   SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, SEXP bars_sexp);
+  SEXP getFuturesSeries(SEXP relation_name_sexp, SEXP units_sexp, SEXP bars_sexp);
   SEXP getAllChildren(SEXP relname_sexp);
 }
 

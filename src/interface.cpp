@@ -51,6 +51,8 @@ void R_unload_RLIM(DllInfo *info) {
 }
 
 SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, SEXP bars_sexp) {
+  ts_type ans;
+
   string relation_name = Rtype<STRSXP>::scalar(relation_name_sexp);
 
   vector<string> colnames;
@@ -59,11 +61,50 @@ SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, S
   XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
   int bars = Rtype<INTSXP>::scalar(bars_sexp);
 
-  ts_type ans = rlim::getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),colnames,xmim_units,bars);
+  if(colnames.size()) {
+    ans = rlim::getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),colnames,xmim_units,bars);
+  } else {
+    ans = rlim::getRelationAllCols<double,double,int,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),xmim_units,bars);
+  }
 
   return ans.getIMPL()->R_object;
 }
 
+SEXP getFuturesSeries(SEXP relation_name_sexp, SEXP units_sexp, SEXP bars_sexp) {
+  SEXP ans, r_class;
+  string relation_name = Rtype<STRSXP>::scalar(relation_name_sexp);
+  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
+  int bars = Rtype<INTSXP>::scalar(bars_sexp);
+
+  std::set<std::string> contractNames;
+  rlim::getAllChildren(handle, contractNames, relation_name.c_str());
+
+  std::vector<std::string> colnames;
+  colnames.push_back("open");
+  colnames.push_back("high");
+  colnames.push_back("low");
+  colnames.push_back("close");
+  colnames.push_back("volume");
+  colnames.push_back("OpenInterest");
+
+  PROTECT(ans = allocVector(VECSXP,contractNames.size()));
+  int i = 0;
+  for(std::set<std::string>::iterator iter = contractNames.begin(); iter != contractNames.end(); iter++, i++) {
+    ts_type this_contract = rlim::getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,const_cast<char*>(iter->c_str()),colnames,xmim_units,bars);
+    SET_VECTOR_ELT(ans,i,this_contract.getIMPL()->R_object);
+  }
+
+  // set names of ans
+  setAttrib(ans, R_NamesSymbol, string2sexp(contractNames.begin(),contractNames.end()));
+
+  // set class of answer
+  PROTECT(r_class = allocVector(STRSXP, 1));
+  SET_STRING_ELT(r_class, 0, mkChar("com"));
+  classgets(ans, r_class);
+
+  UNPROTECT(2); // ans, r_class
+  return ans;
+}
 
 SEXP getAllChildren(SEXP relname_sexp) {
   SEXP ans_sexp;

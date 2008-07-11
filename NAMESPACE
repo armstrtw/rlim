@@ -1,4 +1,6 @@
 useDynLib(RLIM)
 
 export(get.relation,
+       get.ohlc,
+       get.futures.series,
        get.all.children)
