@@ -80,16 +80,11 @@ namespace rlim {
 
     for(std::set<string>::iterator it = tickers.begin(); it != tickers.end(); it++ ) {
       reltype = getRelationType(handle, it->c_str());
-      if(reltype != XMIM_REL_FUTURES_CONTRACT || getRelationNROWS(handle, it->c_str(), units, bars) < 1) {
-        tickers.erase(it);
+      if(reltype == XMIM_REL_FUTURES_CONTRACT &&
+         getRelationNROWS(handle, it->c_str(), units, bars) > 0) {
+        ans.insert(*it);
       }
     }
-
-    ans.clear();
-
-    // insert elements into answer
-    std::copy(tickers.begin(),tickers.end(),
-              inserter(ans,ans.begin()));
   }
 
   /* Returns a list of the names of all the contracts available from the LIM */
