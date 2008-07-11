@@ -15,6 +15,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
+#include <iostream>
+#include <iterator>
 #include <vector>
 #include <string>
 
@@ -77,7 +79,7 @@ SEXP getFuturesSeries(SEXP relation_name_sexp, SEXP units_sexp, SEXP bars_sexp) 
   int bars = Rtype<INTSXP>::scalar(bars_sexp);
 
   std::set<std::string> contractNames;
-  rlim::getAllChildren(handle, contractNames, relation_name.c_str());
+  rlim::getContracts(handle, contractNames, relation_name.c_str(), xmim_units, bars);
 
   std::vector<std::string> colnames;
   colnames.push_back("open");
@@ -115,8 +117,6 @@ SEXP getAllChildren(SEXP relname_sexp) {
   rlim::getAllChildren(handle, ans, relname.c_str());
   return string2sexp(ans.begin(),ans.end());
 }
-
-
 
 XmimUnits getUnits(string units) {
   if(units=="day" || units=="days") {
