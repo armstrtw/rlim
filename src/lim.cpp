@@ -50,8 +50,6 @@ namespace rlim {
     const string lim_server = safe_getenv("LIM_SERVER");
     const int lim_port = atoi(safe_getenv("LIM_PORT").c_str());
 
-    cout << "connecting to LIM on server: " << lim_server <<  " on port " << lim_port << endl;
-
     // connect to LIM
     if (lim_server.size() && XmimConnect (const_cast<char*>(lim_server.c_str()), lim_port, &handle) != XMIM_SUCCESS) {
       cout << "problem connecting to LIM." << endl;
