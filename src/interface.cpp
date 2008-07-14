@@ -29,6 +29,7 @@
 
 #include "lim.hpp"
 #include "get.relation.hpp"
+#include "get.perpetual.series.hpp"
 #include "interface.hpp"
 
 using namespace tslib;
@@ -66,6 +67,28 @@ SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, S
     ans = rlim::getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),colnames,xmim_units,bars);
   } else {
     ans = rlim::getRelationAllCols<double,double,int,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),xmim_units,bars);
+  }
+
+  return ans.getIMPL()->R_object;
+}
+
+SEXP getPerpetualSeries(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP rollDay_sexp, SEXP rollPolicy_sexp, SEXP units_sexp, SEXP bars_sexp) {
+  ts_type ans;
+
+  string relation_name = Rtype<STRSXP>::scalar(relation_name_sexp);
+
+  vector<string> colnames;
+  sexp2string(colnames_sexp,inserter(colnames,colnames.begin()));
+
+  string rollDay = Rtype<STRSXP>::scalar(rollDay_sexp);
+  string rollPolicy = Rtype<STRSXP>::scalar(rollPolicy_sexp);
+  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
+  int bars = Rtype<INTSXP>::scalar(bars_sexp);
+
+  if(!colnames.size()) {
+    return R_NilValue;
+  } else {
+    ans = rlim::getPerpetualSeries<double,double,int,R_Backend_TSdata,PosixDate>(handle, relation_name.c_str(), colnames, rollDay.c_str(), rollPolicy.c_str(), xmim_units, bars);
   }
 
   return ans.getIMPL()->R_object;

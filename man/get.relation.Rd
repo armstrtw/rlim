@@ -1,15 +1,17 @@
 \name{RLIM}
 \alias{RLIM}
 \alias{get.relation}
-\alias{get.all.children}
+\alias{get.perpetual.series}
 \alias{get.futures.series}
 \alias{get.ohlc}
+\alias{get.all.children}
 \title{Read data from lim}
 \description{
 reads any tseries type object form LIM
 }
 \usage{
 get.relation(relname,colnames=NULL,units="days",bars=1)
+get.perpetual.series(relname, colnames=c("open","high","low","close","volume","OpenInterest"), rollDay="1 day after open_interest crossover", rollPolicy="Actual Prices", units="days", bars=1)
 get.ohlc(relname,colnames=c("open","high","low","close"),units="days",bars=1)
 get.futures.series(relname, units="days", bars=1)
 get.all.children(relname)
@@ -18,6 +20,9 @@ get.all.children(relname)
 \arguments{
   \item{relname}{ contract, symbol, or ticker}
   \item{colnames}{ what cols do you want to read}
+  \item{rollDay}{string describing when to roll the contract}
+  \item{rollPolicy}{string describing how to adjust the prices when a
+  roll occurs}
   \item{units}{ minutes or days}
   \item{bars}{ how many minutes or days}
 }
@@ -34,6 +39,13 @@ ibm.all <- get.relation("IBM")
 ibm.ohlc <- get.ohlc("IBM")
 
 ty <- get.futures.series("TY")
+
+ty.p <- get.perpetual.series("TY")
+
+ty.p <- get.perpetual.series("TY",rollDay="open_interest crossover")
+ty.p1 <- get.perpetual.series("TY",rollDay="1 day after open_interest crossover")
+
+ty.adj <- get.perpetual.series("TY",rollDay="open_interest crossover",rollPolicy="backward adjusted prices")
 
 ty.contracts <- get.all.children("TY")
 }
