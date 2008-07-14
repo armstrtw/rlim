@@ -1,28 +1,41 @@
-\name{get.relation}
+\name{RLIM}
+\alias{RLIM}
 \alias{get.relation}
-\title{read data from lim}
+\alias{get.all.children}
+\alias{get.futures.series}
+\alias{get.ohlc}
+\title{Read data from lim}
 \description{
 reads any tseries type object form LIM
 }
 \usage{
-get.relation(contract, colnames = NULL, units = "days", bars = 1)
+get.relation(relname,colnames=NULL,units="days",bars=1)
+get.ohlc(relname,colnames=c("open","high","low","close"),units="days",bars=1)
+get.futures.series(relname, units="days", bars=1)
+get.all.children(relname)
 }
-%- maybe also 'usage' for other objects documented here.
+
 \arguments{
-  \item{contract}{ contract, symbol, or ticker}
+  \item{relname}{ contract, symbol, or ticker}
   \item{colnames}{ what cols do you want to read}
-  \item{from.date}{ starting date (not implemented yet)}
   \item{units}{ minutes or days}
   \item{bars}{ how many minutes or days}
 }
 \value{
-tseries object
+  an fts object
 }
-\references{LIM}
-\author{Whit}
+\author{ Whit Armstrong }
 \examples{
-x <- get.relation("IBM")
-tail(x)
+
+## load all columns
+ibm.all <- get.relation("IBM")
+
+## load only the open/high/low/close columns
+ibm.ohlc <- get.ohlc("IBM")
+
+ty <- get.futures.series("TY")
+
+ty.contracts <- get.all.children("TY")
 }
 \keyword{ts}
 

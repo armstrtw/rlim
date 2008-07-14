@@ -3,6 +3,6 @@ Title: R interface to LIM database
 Version: 0.5.0
 Maintainer: Whit Armstrong <armstrong.whit@gmail.com>
 Author: Whit Armstrong <armstrong.whit@gmail.com>
-Description: LIM interface
 Depends: fts
+Description: LIM interface
 License: GPL Version 3
