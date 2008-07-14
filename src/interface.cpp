@@ -72,7 +72,8 @@ SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, S
 }
 
 SEXP getFuturesSeries(SEXP relation_name_sexp, SEXP units_sexp, SEXP bars_sexp) {
-  SEXP ans, r_class;
+  SEXP ans, expirationDates, r_class, r_dates_class;
+  XmimDate thisExpirationDate;
   string relation_name = Rtype<STRSXP>::scalar(relation_name_sexp);
   XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
   int bars = Rtype<INTSXP>::scalar(bars_sexp);
@@ -89,21 +90,40 @@ SEXP getFuturesSeries(SEXP relation_name_sexp, SEXP units_sexp, SEXP bars_sexp) 
   colnames.push_back("OpenInterest");
 
   PROTECT(ans = allocVector(VECSXP,contractNames.size()));
-  int i = 0;
-  for(std::set<std::string>::iterator iter = contractNames.begin(); iter != contractNames.end(); iter++, i++) {
-    ts_type this_contract = rlim::getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,const_cast<char*>(iter->c_str()),colnames,xmim_units,bars);
-    SET_VECTOR_ELT(ans,i,this_contract.getIMPL()->R_object);
-  }
-
-  // set names of ans
-  setAttrib(ans, R_NamesSymbol, string2sexp(contractNames.begin(),contractNames.end()));
 
   // set class of answer
   PROTECT(r_class = allocVector(STRSXP, 1));
   SET_STRING_ELT(r_class, 0, mkChar("com"));
   classgets(ans, r_class);
+  UNPROTECT(1); // r_class
 
-  UNPROTECT(2); // ans, r_class
+  PROTECT(expirationDates  = R_allocator<double>::Vector(contractNames.size()));
+  // create and add dates class to dates object
+  PROTECT(r_dates_class = allocVector(STRSXP, 2));
+  SET_STRING_ELT(r_dates_class, 0, mkChar("POSIXt"));
+  SET_STRING_ELT(r_dates_class, 1, mkChar("POSIXct"));
+  classgets(expirationDates, r_dates_class);
+  UNPROTECT(1); // r_dates_class
+
+  int i = 0;
+  for(std::set<std::string>::iterator iter = contractNames.begin(); iter != contractNames.end(); iter++, i++) {
+
+    // get contract data
+    ts_type this_contract = rlim::getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,const_cast<char*>(iter->c_str()),colnames,xmim_units,bars);
+    SET_VECTOR_ELT(ans,i,this_contract.getIMPL()->R_object);
+
+    // get contract expiration data
+    thisExpirationDate = rlim::getExpirationDate(handle, const_cast<char*>(iter->c_str()));
+    R_allocator<double>::R_dataPtr(expirationDates)[i] = PosixDate<double>::toDate(thisExpirationDate.year,thisExpirationDate.month,thisExpirationDate.day,0,0,0);
+  }
+
+  // set names of ans
+  setAttrib(ans, R_NamesSymbol, string2sexp(contractNames.begin(),contractNames.end()));
+
+  // set expirationDates of ans
+  setAttrib(ans, install("expirationDates"), expirationDates);
+
+  UNPROTECT(2); // ans, expirationDates
   return ans;
 }
 
