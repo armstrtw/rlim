@@ -1,5 +1,7 @@
 useDynLib(RLIM)
 
+import(fts)
+
 export(get.relation,
        get.ohlc,
        get.futures.series,
