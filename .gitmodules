@@ -4,3 +4,6 @@
 [submodule "src/RAbstraction"]
 	path = src/RAbstraction
 	url = /home/whit/dvl/R.packages/RAbstraction/.git
+[submodule "src/R.tslib.backend"]
+	path = src/R.tslib.backend
+	url = /home/whit/dvl/R.packages/R.tslib.backend/.git

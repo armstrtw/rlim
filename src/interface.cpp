@@ -25,11 +25,10 @@
 #include <tslib/tseries.hpp>
 #include <Rtype.hpp>
 #include <Rutilities.hpp>
+#include <R.tseries.data.backend.hpp>
 
 #include "lim.hpp"
-#include "R.tseries.data.backend.hpp"
 #include "get.relation.hpp"
-
 #include "interface.hpp"
 
 using namespace tslib;
