@@ -17,6 +17,8 @@
 
 #include <iostream>
 #include <iterator>
+#include <map>
+#include <set>
 #include <vector>
 #include <string>
 
@@ -34,8 +36,12 @@
 
 using namespace tslib;
 
-using std::string;
+using std::map;
+using std::set;
 using std::vector;
+using std::string;
+
+
 
 typedef TSeries<double,double,int,R_Backend_TSdata,PosixDate> ts_type;
 
@@ -60,7 +66,7 @@ SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, S
   vector<string> colnames;
   sexp2string(colnames_sexp,inserter(colnames,colnames.begin()));
 
-  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
+  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp).c_str());
   int bars = Rtype<INTSXP>::scalar(bars_sexp);
 
   if(colnames.size()) {
@@ -82,7 +88,7 @@ SEXP getPerpetualSeries(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP rollDa
 
   string rollDay = Rtype<STRSXP>::scalar(rollDay_sexp);
   string rollPolicy = Rtype<STRSXP>::scalar(rollPolicy_sexp);
-  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
+  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp).c_str());
   int bars = Rtype<INTSXP>::scalar(bars_sexp);
 
   if(!colnames.size()) {
@@ -98,7 +104,7 @@ SEXP getFuturesSeries(SEXP relation_name_sexp, SEXP units_sexp, SEXP bars_sexp) 
   SEXP ans, expirationDates, r_class, r_dates_class;
   XmimDate thisExpirationDate;
   string relation_name = Rtype<STRSXP>::scalar(relation_name_sexp);
-  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
+  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp).c_str());
   int bars = Rtype<INTSXP>::scalar(bars_sexp);
 
   std::set<std::string> contractNames;
@@ -152,21 +158,48 @@ SEXP getFuturesSeries(SEXP relation_name_sexp, SEXP units_sexp, SEXP bars_sexp) 
 
 SEXP getAllChildren(SEXP relname_sexp) {
   SEXP ans_sexp;
-  std::set<std::string> ans;
+  set<string> ans;
 
-  std::string relname = Rtype<STRSXP>::scalar(relname_sexp);
+  string relname = Rtype<STRSXP>::scalar(relname_sexp);
 
   rlim::getAllChildren(handle, ans, relname.c_str());
   return string2sexp(ans.begin(),ans.end());
 }
 
-XmimUnits getUnits(string units) {
-  if(units=="day" || units=="days") {
-    return XMIM_DAYS;
-  } else if(units=="minute" || units=="minutes") {
-    return XMIM_MINUTES;
-  } else {
-    Rprintf("WARNING: invalid units: %s\n",units.c_str());
+const XmimUnits getUnits(const char* units) {
+  static map<string, XmimUnits> units_map = init_units();
+
+  map<string, XmimUnits>::iterator iter = units_map.find(units);
+
+  if(iter == units_map.end()) {
+    Rprintf("WARNING: invalid units: %s\n", units);
     return XMIM_UNITS_INVALID;
   }
+  return iter->second;
+}
+
+map<string,XmimUnits> init_units() {
+  cout << "init units" << endl;
+  map<string, XmimUnits> ans;
+
+  ans["millisecond"] = XMIM_MILLISECONDS;
+  ans["milliseconds"] = XMIM_MILLISECONDS;
+  ans["second"] = XMIM_SECONDS;
+  ans["seconds"] = XMIM_SECONDS;
+  ans["minute"] = XMIM_MINUTES;
+  ans["minutes"] = XMIM_MINUTES;
+  ans["hour"] = XMIM_HOURS;
+  ans["hours"] = XMIM_HOURS;
+  ans["day"] = XMIM_DAYS;
+  ans["days"] = XMIM_DAYS;
+  ans["week"] = XMIM_WEEKS;
+  ans["weeks"] = XMIM_WEEKS;
+  ans["month"] = XMIM_MONTHS;
+  ans["months"] = XMIM_MONTHS;
+  ans["quarter"] = XMIM_QUARTERS;
+  ans["quarters"] = XMIM_QUARTERS;
+  ans["year"] = XMIM_YEARS;
+  ans["years"] = XMIM_YEARS;
+
+  return ans;
 }

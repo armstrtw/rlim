@@ -15,6 +15,15 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
+
+#include <map>
+#include <string>
+#include <xmim_api.h>
+#include <Rinternals.h>
+
+const XmimUnits getUnits(const char* units);
+std::map<std::string,XmimUnits> init_units();
+
 // exported functions
 extern "C" {
   void R_init_RLIM(DllInfo *info);
@@ -24,6 +33,3 @@ extern "C" {
   SEXP getFuturesSeries(SEXP relation_name_sexp, SEXP units_sexp, SEXP bars_sexp);
   SEXP getAllChildren(SEXP relname_sexp);
 }
-
-XmimUnits getUnits(string units);
-void sexp2string(const SEXP str_sexp,std::vector<std::string>& ans);
