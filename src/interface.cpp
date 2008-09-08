@@ -179,7 +179,7 @@ const XmimUnits getUnits(const char* units) {
 }
 
 map<string,XmimUnits> init_units() {
-  cout << "init units" << endl;
+
   map<string, XmimUnits> ans;
 
   ans["millisecond"] = XMIM_MILLISECONDS;
