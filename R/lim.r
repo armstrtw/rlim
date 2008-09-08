@@ -3,7 +3,7 @@ get.relation <- function(relname, colnames=NULL, units="days", bars=1) {
 }
 
 get.perpetual.series <- function(relname, colnames=c("open","high","low","close","volume","OpenInterest"),
-                                 rollDay="1 day after open_interest crossover",
+                                 rollDay="open_interest crossover",
                                  rollPolicy="Actual Prices",
                                  units="days",
                                  bars=1) {
