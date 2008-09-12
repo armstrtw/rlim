@@ -21,3 +21,18 @@ get.futures.series <- function(relname, units="days", bars=1) {
 get.all.children <- function(relname) {
     .Call("getAllChildren", relname)
 }
+
+get.coml <- function(relname,
+                     colnames=c("open","high","low","close","volume","OpenInterest"),
+                     rollDay="open_interest crossover",
+                     units="days",
+                     bars=1) {
+
+    ans <- list()
+
+    ans[["ps"]] <- get.perpetual.series(relname,colnames=colnames,rollDay=rollDay,rollPolicy="backward adjusted prices",units=units,bars=bars)
+    ans[["ds"]] <- get.perpetual.series(relname,colnames=colnames,rollDay=rollDay,rollPolicy="actual prices",units=units,bars=bars)
+
+    class(ans) <- "coml"
+    ans
+}

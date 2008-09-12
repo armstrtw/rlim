@@ -6,4 +6,5 @@ export(get.relation,
        get.perpetual.series,
        get.ohlc,
        get.futures.series,
+       get.coml,
        get.all.children)
