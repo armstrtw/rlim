@@ -22,7 +22,7 @@ get.all.children <- function(relname) {
     .Call("getAllChildren", relname)
 }
 
-get.coml <- function(relname,
+get.coms <- function(relname,
                      colnames=c("open","high","low","close","volume","OpenInterest"),
                      rollDay="open_interest crossover",
                      units="days",
@@ -30,9 +30,9 @@ get.coml <- function(relname,
 
     ans <- list()
 
-    ans[["ps"]] <- get.perpetual.series(relname,colnames=colnames,rollDay=rollDay,rollPolicy="backward adjusted prices",units=units,bars=bars)
-    ans[["ds"]] <- get.perpetual.series(relname,colnames=colnames,rollDay=rollDay,rollPolicy="actual prices",units=units,bars=bars)
+    ans[["adjusted.prices"]] <- get.perpetual.series(relname,colnames=colnames,rollDay=rollDay,rollPolicy="backward adjusted prices",units=units,bars=bars)
+    ans[["unadjusted.prices"]] <- get.perpetual.series(relname,colnames=colnames,rollDay=rollDay,rollPolicy="actual prices",units=units,bars=bars)
 
-    class(ans) <- "coml"
+    class(ans) <- "coms"
     ans
 }

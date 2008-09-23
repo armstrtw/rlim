@@ -3,7 +3,7 @@
 \alias{get.relation}
 \alias{get.perpetual.series}
 \alias{get.futures.series}
-\alias{get.coml}
+\alias{get.coms}
 \alias{get.ohlc}
 \alias{get.all.children}
 \title{Read data from lim}
@@ -14,7 +14,7 @@ reads any tseries type object form LIM
 get.relation(relname,colnames=NULL,units="days",bars=1)
 get.perpetual.series(relname,colnames=c("open","high","low","close","volume","OpenInterest"),
 rollDay="open_interest crossover",rollPolicy="Actual Prices",units="days",bars=1)
-get.coml(relname, colnames=c("open","high","low","close","volume","OpenInterest"), rollDay="open_interest crossover", units="days", bars=1)
+get.coms(relname, colnames=c("open","high","low","close","volume","OpenInterest"), rollDay="open_interest crossover", units="days", bars=1)
 get.ohlc(relname,colnames=c("open","high","low","close"),units="days",bars=1)
 get.futures.series(relname, units="days", bars=1)
 get.all.children(relname)
