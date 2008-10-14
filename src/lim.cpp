@@ -55,7 +55,7 @@ namespace rlim {
       cout << "problem connecting to LIM." << endl;
       cout << "make sure LIM_SERVER and LIM_PORT are set in your environment." << endl;
       handle = static_cast<XmimClientHandle>(0);
-    }        
+    }
     return handle;
   }
 
@@ -69,6 +69,23 @@ namespace rlim {
     return reltype;
   }
 
+  const bool hasRows(const XmimClientHandle& handle, const char* relname, const XmimUnits units) {
+    XmimDate fromDate;
+    XmimDate toDate;
+    char* colnames = "close";
+    int ncols = 1;
+
+    if(XmimGetDataRange(handle, const_cast<char*>(relname), ncols, &colnames, units, &fromDate, &toDate) == XMIM_ERROR) {
+      XmimPrintError("XmimVaGetRecordsRollover");
+      return false;
+    }
+
+    if(fromDate.year == 0 || fromDate.month == 0 || fromDate.day == 0) {
+      return false;
+    }
+    return true;
+  }
+
   /* Returns a list of the names of all the contracts available from the LIM */
   void getContracts(const XmimClientHandle& handle, std::set<string>& ans, const char* relname, const XmimUnits units, const int bars) {
     std::set<string> tickers;
@@ -79,7 +96,7 @@ namespace rlim {
     // drop out continuous contracts and such
     // only accept actual futures contracts
     for(std::set<string>::iterator it = tickers.begin(); it != tickers.end(); it++ ) {
-      if(getRelationType(handle, it->c_str()) == XMIM_REL_FUTURES_CONTRACT) {
+      if(getRelationType(handle, it->c_str()) == XMIM_REL_FUTURES_CONTRACT && hasRows(handle, it->c_str(), units)) {
         ans.insert(*it);
       }
     }
