@@ -30,10 +30,11 @@ namespace rlim {
            class TDATA,
            class TSDIM,
            template<typename,typename,typename> class TSDATABACKEND,
-           template<typename> class DatePolicy>
+           template<typename> class DatePolicy,
+           class LIMTYPE>
   const TSeries<TDATE,TDATA,TSDIM,TSDATABACKEND,DatePolicy>  xmim2fts(const int num_records,
                                                                       const int num_columns,
-                                                                      const float* values,
+                                                                      const LIMTYPE* values,
                                                                       const XmimDateTime *dates, 
                                                                       const std::vector<std::string>& colnames)
            {
@@ -55,7 +56,8 @@ namespace rlim {
                                                         dates[i].day,
                                                         dates[i].hour,
                                                         dates[i].minute,
-                                                        dates[i].second);
+                                                        dates[i].second,
+                                                        dates[i].millisecond);
 
                // loop through columns
                for(int j = 0; j < num_columns; j++) {

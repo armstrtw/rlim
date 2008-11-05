@@ -31,10 +31,12 @@
 
 #include "lim.hpp"
 #include "get.relation.hpp"
+#include "get.relation.all.cols.hpp"
 #include "get.perpetual.series.hpp"
 #include "interface.hpp"
 
 using namespace tslib;
+using namespace rlim;
 
 using std::map;
 using std::set;
@@ -51,14 +53,14 @@ static XmimClientHandle handle;
 // initialize the connection to the LIM server when loaded:
 // (remember to change this function name if the package name changes)
 void R_init_RLIM(DllInfo *info) {
-  handle = rlim::limConnect();
+  handle = limConnect();
 }
 
 void R_unload_RLIM(DllInfo *info) {
   XmimDisconnect(handle);
 }
 
-SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, SEXP bars_sexp) {
+SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
   ts_type ans;
 
   string relation_name = Rtype<STRSXP>::scalar(relation_name_sexp);
@@ -67,18 +69,18 @@ SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, S
   sexp2string(colnames_sexp,inserter(colnames,colnames.begin()));
 
   XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp).c_str());
-  int bars = Rtype<INTSXP>::scalar(bars_sexp);
+  int numUnits = Rtype<INTSXP>::scalar(numUnits_sexp);
 
   if(colnames.size()) {
-    ans = rlim::getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),colnames,xmim_units,bars);
+    ans = getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),colnames,xmim_units,numUnits);
   } else {
-    ans = rlim::getRelationAllCols<double,double,int,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),xmim_units,bars);
+    ans = getRelationAllCols<double,double,int,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),xmim_units,numUnits);
   }
 
   return ans.getIMPL()->R_object;
 }
 
-SEXP getPerpetualSeries(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP rollDay_sexp, SEXP rollPolicy_sexp, SEXP units_sexp, SEXP bars_sexp) {
+SEXP getPerpetualSeries(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP rollDay_sexp, SEXP rollPolicy_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
   ts_type ans;
 
   string relation_name = Rtype<STRSXP>::scalar(relation_name_sexp);
@@ -89,26 +91,26 @@ SEXP getPerpetualSeries(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP rollDa
   string rollDay = Rtype<STRSXP>::scalar(rollDay_sexp);
   string rollPolicy = Rtype<STRSXP>::scalar(rollPolicy_sexp);
   XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp).c_str());
-  int bars = Rtype<INTSXP>::scalar(bars_sexp);
+  int numUnits = Rtype<INTSXP>::scalar(numUnits_sexp);
 
   if(!colnames.size()) {
     return R_NilValue;
   } else {
-    ans = rlim::getPerpetualSeries<double,double,int,R_Backend_TSdata,PosixDate>(handle, relation_name.c_str(), colnames, rollDay.c_str(), rollPolicy.c_str(), xmim_units, bars);
+    ans = getPerpetualSeries<double,double,int,R_Backend_TSdata,PosixDate>(handle, relation_name.c_str(), colnames, rollDay.c_str(), rollPolicy.c_str(), xmim_units, numUnits);
   }
 
   return ans.getIMPL()->R_object;
 }
 
-SEXP getFuturesSeries(SEXP relation_name_sexp, SEXP units_sexp, SEXP bars_sexp) {
+SEXP getFuturesSeries(SEXP relation_name_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
   SEXP ans, expirationDates, r_class, r_dates_class;
   XmimDate thisExpirationDate;
   string relation_name = Rtype<STRSXP>::scalar(relation_name_sexp);
   XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp).c_str());
-  int bars = Rtype<INTSXP>::scalar(bars_sexp);
+  int numUnits = Rtype<INTSXP>::scalar(numUnits_sexp);
 
   std::set<std::string> contractNames;
-  rlim::getContracts(handle, contractNames, relation_name.c_str(), xmim_units, bars);
+  getContracts(handle, contractNames, relation_name.c_str(), xmim_units, numUnits);
 
   std::vector<std::string> colnames;
   colnames.push_back("open");
@@ -138,11 +140,11 @@ SEXP getFuturesSeries(SEXP relation_name_sexp, SEXP units_sexp, SEXP bars_sexp) 
   for(std::set<std::string>::iterator iter = contractNames.begin(); iter != contractNames.end(); iter++, i++) {
 
     // get contract data
-    ts_type this_contract = rlim::getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,const_cast<char*>(iter->c_str()),colnames,xmim_units,bars);
+    ts_type this_contract = getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,const_cast<char*>(iter->c_str()),colnames,xmim_units,numUnits);
     SET_VECTOR_ELT(ans,i,this_contract.getIMPL()->R_object);
 
     // get contract expiration data
-    thisExpirationDate = rlim::getExpirationDate(handle, const_cast<char*>(iter->c_str()));
+    thisExpirationDate = getExpirationDate(handle, const_cast<char*>(iter->c_str()));
     R_allocator<double>::R_dataPtr(expirationDates)[i] = PosixDate<double>::toDate(thisExpirationDate.year,thisExpirationDate.month,thisExpirationDate.day,0,0,0);
   }
 
@@ -162,7 +164,7 @@ SEXP getAllChildren(SEXP relname_sexp) {
 
   string relname = Rtype<STRSXP>::scalar(relname_sexp);
 
-  rlim::getAllChildren(handle, ans, relname.c_str());
+  getAllChildren(handle, ans, relname.c_str());
   return string2sexp(ans.begin(),ans.end());
 }
 

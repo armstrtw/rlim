@@ -29,6 +29,7 @@ namespace rlim {
   const std::string safe_getenv(const char* env_var);
   const XmimClientHandle limConnect();
   const XmimRelType getRelationType(const XmimClientHandle& handle, const char* relname);
+  const bool hasRows(const XmimClientHandle& handle, const char* relname, const XmimUnits units);
   void getContracts(const XmimClientHandle& handle, std::set<std::string>& ans, const char* genericContract, const XmimUnits units, const int bars);
   void getAllChildren(const XmimClientHandle& handle, std::set<std::string>& ans, const char* ticker);
   const int getContractMonth(const char letter);
@@ -38,7 +39,7 @@ namespace rlim {
   const int getRelationNROWS(const XmimClientHandle& handle, const char* ticker, const XmimUnits xunits, const int bars);
   const XmimDate getExpirationDate(const XmimClientHandle& handle, const char* contract);
   const XmimDate getFirstNoticeDate(const XmimClientHandle& handle, const char* contract);
-  const bool isFuturesContract(const char* relname);
+  const bool isFuturesContract(const XmimClientHandle& handle, const char* relname);
 
 } // namespace rlim
 
