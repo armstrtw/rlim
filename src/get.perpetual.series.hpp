@@ -60,7 +60,7 @@ namespace rlim {
 
     XmimString* xmim_columns = new XmimString[num_columns];
     int i = 0;
-    for(vector<std::string>::const_iterator it = colnames.begin(); it != colnames.end(); it++, i++) {
+    for(std::vector<std::string>::const_iterator it = colnames.begin(); it != colnames.end(); it++, i++) {
       xmim_columns[i] = strdup(it->c_str());
     }
 
