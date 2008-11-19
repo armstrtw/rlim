@@ -109,10 +109,10 @@ SEXP getFuturesSeries(SEXP relation_name_sexp, SEXP units_sexp, SEXP numUnits_se
   XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp).c_str());
   int numUnits = Rtype<INTSXP>::scalar(numUnits_sexp);
 
-  std::set<std::string> contractNames;
+  set<string> contractNames;
   getContracts(handle, contractNames, relation_name.c_str(), xmim_units, numUnits);
 
-  std::vector<std::string> colnames;
+  vector<string> colnames;
   colnames.push_back("open");
   colnames.push_back("high");
   colnames.push_back("low");
@@ -137,7 +137,7 @@ SEXP getFuturesSeries(SEXP relation_name_sexp, SEXP units_sexp, SEXP numUnits_se
   UNPROTECT(1); // r_dates_class
 
   int i = 0;
-  for(std::set<std::string>::iterator iter = contractNames.begin(); iter != contractNames.end(); iter++, i++) {
+  for(set<string>::iterator iter = contractNames.begin(); iter != contractNames.end(); iter++, i++) {
 
     // get contract data
     ts_type this_contract = getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,const_cast<char*>(iter->c_str()),colnames,xmim_units,numUnits);
