@@ -55,7 +55,7 @@ namespace rlim {
 
     // return empty fts if we encounter an error
     if(retCode!=XMIM_SUCCESS) {
-      XmimPrintError("XmimVaGetRecords");
+      XmimPrintError(const_cast<char*>("XmimVaGetRecords"));
       return TSeries<TDATE,TDATA,TSDIM,TSDATABACKEND,DatePolicy>();
     }
     

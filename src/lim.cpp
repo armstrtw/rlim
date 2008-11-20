@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
+#include <cstdlib>
 #include <string>
 #include <iostream>
 #include <ctime>
@@ -60,7 +61,7 @@ const XmimRelType rlim::getRelationType(const XmimClientHandle& handle, const ch
   XmimRelType reltype;
 
   if(XmimGetRelType (handle, const_cast<char*>(relname), &reltype) != XMIM_SUCCESS) {
-    XmimPrintError("XmimGetRelType");
+    XmimPrintError(const_cast<char*>("XmimGetRelType"));
     reltype = XMIM_REL_INVALID;
   }
   return reltype;
@@ -69,11 +70,11 @@ const XmimRelType rlim::getRelationType(const XmimClientHandle& handle, const ch
 const bool rlim::hasRows(const XmimClientHandle& handle, const char* relname, const XmimUnits units) {
   XmimDate fromDate;
   XmimDate toDate;
-  char* colnames = "close";
+  const char* colnames = "close";
   int ncols = 1;
 
-  if(XmimGetDataRange(handle, const_cast<char*>(relname), ncols, &colnames, units, &fromDate, &toDate) == XMIM_ERROR) {
-    XmimPrintError("XmimVaGetRecordsRollover");
+  if(XmimGetDataRange(handle, const_cast<char*>(relname), ncols, const_cast<char**>(&colnames), units, &fromDate, &toDate) == XMIM_ERROR) {
+    XmimPrintError(const_cast<char*>("XmimVaGetRecordsRollover"));
     return false;
   }
 
@@ -106,7 +107,7 @@ void rlim::getAllChildren(const XmimClientHandle& handle, std::set<string>& ans,
   XmimString* relnames;
 
   if(XmimGetRelChildren(handle, const_cast<char*>(relname), &num_relnames, &relnames) != XMIM_SUCCESS) {
-    XmimPrintError("XmimGetRelChildren");
+    XmimPrintError(const_cast<char*>("XmimGetRelChildren"));
     return;
   }
 
@@ -173,7 +174,7 @@ void rlim::getRollDates(const XmimClientHandle& handle, std::map<std::string,Xmi
                              XMIM_CONTRACTS, &contracts,
                              XMIM_END_ARGS)!=XMIM_SUCCESS) {
 
-    XmimPrintError("XmimVaGetRecordsRollover");
+    XmimPrintError(const_cast<char*>("XmimVaGetRecordsRollover"));
     return;
   }
 
@@ -202,7 +203,7 @@ const XmimDate rlim::getExpirationDate(const XmimClientHandle& handle, const cha
                         XMIM_RELATION,        contract,
                         XMIM_EXPIRATION_DATE, &ex_date,
                         XMIM_END_ARGS) != XMIM_SUCCESS) {
-    XmimPrintError("XmimVaGetRelation");
+    XmimPrintError(const_cast<char*>("XmimVaGetRelation"));
 
     // set these to something nonsensical
     ex_date.year  = 0;
@@ -223,7 +224,7 @@ const XmimDate rlim::getFirstNoticeDate(const XmimClientHandle& handle, const ch
                        XMIM_RELATION, contract,
                        XMIM_FIRST_NOTICE_DATE, &first_notice_date,
                        XMIM_END_ARGS) != XMIM_SUCCESS) {
-    XmimPrintError("XmimVaGetRecords");
+    XmimPrintError(const_cast<char*>("XmimVaGetRecords"));
   }
   return first_notice_date;
 }
@@ -232,7 +233,7 @@ const bool rlim::isFuturesContract(const XmimClientHandle& handle, const char* r
   XmimRelType reltype;
 
   if(XmimGetRelType(handle, const_cast<char*>(relname), &reltype)!=XMIM_SUCCESS) {
-    XmimPrintError("XmimGetRelType");
+    XmimPrintError(const_cast<char*>("XmimGetRelType"));
     return false;
   }
 
