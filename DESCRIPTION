@@ -1,6 +1,6 @@
 Package: RLIM
 Title: R interface to LIM database
-Version: 0.5.0
+Version: 0.7.0
 Maintainer: Whit Armstrong <armstrong.whit@gmail.com>
 Author: Whit Armstrong <armstrong.whit@gmail.com>
 Depends: fts
