@@ -18,7 +18,6 @@
 #include <iostream>
 #include <iterator>
 #include <map>
-#include <set>
 #include <vector>
 #include <string>
 
@@ -32,16 +31,15 @@
 #include <Rvector.hpp>
 #include <lim.tslib/lim.tslib.hpp>
 
-#include "lim.hpp"
 #include "interface.hpp"
 
 using namespace tslib;
-using namespace rlim;
 
 using std::map;
-using std::set;
 using std::vector;
 using std::string;
+using std::cerr;
+using std::endl;
 
 typedef TSeries<double,double,R_len_t,R_Backend_TSdata,PosixDate> ts_type;
 
@@ -56,6 +54,23 @@ void R_init_RLIM(DllInfo *info) {
 
 void R_unload_RLIM(DllInfo *info) {
   XmimDisconnect(handle);
+}
+
+const XmimClientHandle limConnect() {
+  XmimClientHandle handle = -1;
+
+  char* limServer = getenv("LIM_SERVER");
+  char* limPort_char = getenv("LIM_PORT");
+
+  if(limServer == NULL || limPort_char == NULL) {
+    cerr << "please make sure LIM_SERVER and LIM_PORT are defined in your environment." << endl;
+  } else {
+    int limPort = atoi(limPort_char);
+    if(XmimConnect(limServer, limPort, &handle)!= XMIM_SUCCESS) {
+      cerr << "failed to connect to lim" << endl;
+    }
+  }
+  return handle;
 }
 
 SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
@@ -137,7 +152,7 @@ SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
   }
 
   // set names of ans: FIXME: extract names from map
-  //ans.setNames(contractNames.begin(),contractNames.end());
+  ans.setNames(contractNames.begin(),contractNames.end());
   // set expirationDates of ans
   ans.setAttribute("expirationDates",expirationDates.getSEXP());
 
@@ -157,7 +172,7 @@ const XmimUnits getUnits(const char* units) {
   map<string, XmimUnits>::iterator iter = units_map.find(units);
 
   if(iter == units_map.end()) {
-    Rprintf("WARNING: invalid units: %s\n", units);
+    cerr << "WARNING: invalid units: " << units << endl;
     return XMIM_UNITS_INVALID;
   }
   return iter->second;

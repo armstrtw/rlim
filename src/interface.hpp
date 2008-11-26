@@ -21,8 +21,9 @@
 #include <xmim_api.h>
 #include <Rinternals.h>
 
+const XmimClientHandle limConnect();
 const XmimUnits getUnits(const char* units);
-std::map<std::string,XmimUnits> init_units();
+std::map<std::string, XmimUnits> init_units();
 
 // exported functions
 extern "C" {
