@@ -136,7 +136,7 @@ SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
   lim_tslib_interface::getExpirationDates(handle, back_inserter(ex_dates), contractNames.begin(),contractNames.end());
   RAbstraction::RVector<REALSXP> expirationDates(ex_dates.size());
   int i = 0;
-  for(vector<XmimDate>::iterator iter = ex_dates.begin(); iter != ex_dates.end(); iter++) {
+  for(vector<XmimDate>::iterator iter = ex_dates.begin(); iter != ex_dates.end(); iter++, i++) {
     expirationDates[i] = PosixDate<double>::toDate(iter->year,iter->month,iter->day,0,0,0,0);
   }
   // create and add dates class to dates object
