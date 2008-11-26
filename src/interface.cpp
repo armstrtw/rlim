@@ -22,17 +22,17 @@
 #include <vector>
 #include <string>
 
+#include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 
 #include <tslib/tseries.hpp>
 #include <Rtype.hpp>
 #include <Rutilities.hpp>
 #include <R.tseries.data.backend.hpp>
+#include <Rvector.hpp>
+#include <lim.tslib/lim.tslib.hpp>
 
 #include "lim.hpp"
-#include "get.relation.hpp"
-#include "get.relation.all.cols.hpp"
-#include "get.perpetual.series.hpp"
 #include "interface.hpp"
 
 using namespace tslib;
@@ -43,9 +43,7 @@ using std::set;
 using std::vector;
 using std::string;
 
-
-
-typedef TSeries<double,double,int,R_Backend_TSdata,PosixDate> ts_type;
+typedef TSeries<double,double,R_len_t,R_Backend_TSdata,PosixDate> ts_type;
 
 // so we don't have to pass it around in every function call
 static XmimClientHandle handle;
@@ -68,13 +66,13 @@ SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, S
   vector<string> colnames;
   sexp2string(colnames_sexp,inserter(colnames,colnames.begin()));
 
-  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp).c_str());
+  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
   int numUnits = Rtype<INTSXP>::scalar(numUnits_sexp);
 
   if(colnames.size()) {
-    ans = getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),colnames,xmim_units,numUnits);
+    ans = lim_tslib_interface::getRelation<double,double,R_len_t,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),colnames,xmim_units,numUnits);
   } else {
-    ans = getRelationAllCols<double,double,int,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),xmim_units,numUnits);
+    ans = lim_tslib_interface::getRelationAllCols<double,double,R_len_t,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),xmim_units,numUnits);
   }
 
   return ans.getIMPL()->R_object;
@@ -90,81 +88,66 @@ SEXP getPerpetualSeries(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP rollDa
 
   string rollDay = Rtype<STRSXP>::scalar(rollDay_sexp);
   string rollPolicy = Rtype<STRSXP>::scalar(rollPolicy_sexp);
-  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp).c_str());
+  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
   int numUnits = Rtype<INTSXP>::scalar(numUnits_sexp);
 
   if(!colnames.size()) {
     return R_NilValue;
   } else {
-    ans = getPerpetualSeries<double,double,int,R_Backend_TSdata,PosixDate>(handle, relation_name.c_str(), colnames, rollDay.c_str(), rollPolicy.c_str(), xmim_units, numUnits);
+    ans = lim_tslib_interface::getPerpetualSeries<double,double,R_len_t,R_Backend_TSdata,PosixDate>(handle, relation_name.c_str(), colnames, rollDay.c_str(), rollPolicy.c_str(), xmim_units, numUnits);
   }
 
   return ans.getIMPL()->R_object;
 }
 
-SEXP getFuturesSeries(SEXP relation_name_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
-  SEXP ans, expirationDates, r_class, r_dates_class;
-  XmimDate thisExpirationDate;
-  string relation_name = Rtype<STRSXP>::scalar(relation_name_sexp);
-  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp).c_str());
-  int numUnits = Rtype<INTSXP>::scalar(numUnits_sexp);
+SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
+  const char* relname = Rtype<STRSXP>::scalar(relname_sexp);
+  const XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
+  const int numUnits = Rtype<INTSXP>::scalar(numUnits_sexp);
+  map<string,ts_type> ans_map;
+  vector<XmimDate> ex_dates;
 
-  set<string> contractNames;
-  getContracts(handle, contractNames, relation_name.c_str(), xmim_units, numUnits);
-
-  vector<string> colnames;
-  colnames.push_back("open");
-  colnames.push_back("high");
-  colnames.push_back("low");
-  colnames.push_back("close");
-  colnames.push_back("volume");
-  colnames.push_back("OpenInterest");
-
-  PROTECT(ans = allocVector(VECSXP,contractNames.size()));
-
-  // set class of answer
-  PROTECT(r_class = allocVector(STRSXP, 1));
-  SET_STRING_ELT(r_class, 0, mkChar("com"));
-  classgets(ans, r_class);
-  UNPROTECT(1); // r_class
-
-  PROTECT(expirationDates  = R_allocator<double>::Vector(contractNames.size()));
-  // create and add dates class to dates object
-  PROTECT(r_dates_class = allocVector(STRSXP, 2));
-  SET_STRING_ELT(r_dates_class, 0, mkChar("POSIXt"));
-  SET_STRING_ELT(r_dates_class, 1, mkChar("POSIXct"));
-  classgets(expirationDates, r_dates_class);
-  UNPROTECT(1); // r_dates_class
-
-  int i = 0;
-  for(set<string>::iterator iter = contractNames.begin(); iter != contractNames.end(); iter++, i++) {
-
-    // get contract data
-    ts_type this_contract = getRelation<double,double,int,R_Backend_TSdata,PosixDate>(handle,const_cast<char*>(iter->c_str()),colnames,xmim_units,numUnits);
-    SET_VECTOR_ELT(ans,i,this_contract.getIMPL()->R_object);
-
-    // get contract expiration data
-    thisExpirationDate = getExpirationDate(handle, const_cast<char*>(iter->c_str()));
-    R_allocator<double>::R_dataPtr(expirationDates)[i] = PosixDate<double>::toDate(thisExpirationDate.year,thisExpirationDate.month,thisExpirationDate.day,0,0,0);
+  lim_tslib_interface::getFuturesSeries<double,double,R_len_t,R_Backend_TSdata,PosixDate>(handle,ans_map,relname,xmim_units,numUnits);
+  
+  // extract individual contract names
+  vector<string> contractNames;
+  for(map<string,ts_type>::iterator iter = ans_map.begin(); iter != ans_map.end(); iter++) {
+    contractNames.push_back(iter->first);
   }
 
-  // set names of ans
-  setAttrib(ans, R_NamesSymbol, string2sexp(contractNames.begin(),contractNames.end()));
+  RAbstraction::RVector<VECSXP> ans(ans_map.size());
+  ans.setClass("com");
 
+  lim_tslib_interface::getExpirationDates(handle, back_inserter(ex_dates), contractNames.begin(),contractNames.end());
+  RAbstraction::RVector<REALSXP> expirationDates(ex_dates.size());
+  int i = 0;
+  for(vector<XmimDate>::iterator iter = ex_dates.begin(); iter != ex_dates.end(); iter++) {
+    expirationDates[i] = PosixDate<double>::toDate(iter->year,iter->month,iter->day,0,0,0,0);
+  }
+  // create and add dates class to dates object
+  vector<string> dts_class;
+  dts_class.push_back("POSIXt");
+  dts_class.push_back("POSIXct");
+  expirationDates.setClass(dts_class.begin(),dts_class.end());
+  
+  i = 0;
+  for(map<string,ts_type>::iterator iter = ans_map.begin(); iter != ans_map.end(); iter++, i++) {
+    SET_VECTOR_ELT(ans.getSEXP(), i, iter->second.getIMPL()->R_object);
+    //ans(i) = iter->second.getIMPL()->R_object;
+  }
+
+  // set names of ans: FIXME: extract names from map
+  //ans.setNames(contractNames.begin(),contractNames.end());
   // set expirationDates of ans
-  setAttrib(ans, install("expirationDates"), expirationDates);
+  ans.setAttribute("expirationDates",expirationDates.getSEXP());
 
-  UNPROTECT(2); // ans, expirationDates
-  return ans;
+  return ans.getSEXP();
 }
 
 SEXP getAllChildren(SEXP relname_sexp) {
-  SEXP ans_sexp;
-  set<string> ans;
-
+  vector<string> ans;
   string relname = Rtype<STRSXP>::scalar(relname_sexp);
-
-  getAllChildren(handle, ans, relname.c_str());
+  lim_tslib_interface::getAllChildren(handle, back_inserter(ans), relname.c_str());
   return string2sexp(ans.begin(),ans.end());
 }
 
@@ -180,7 +163,7 @@ const XmimUnits getUnits(const char* units) {
   return iter->second;
 }
 
-map<string,XmimUnits> init_units() {
+map<string, XmimUnits> init_units() {
 
   map<string, XmimUnits> ans;
 

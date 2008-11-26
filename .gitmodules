@@ -7,3 +7,6 @@
 [submodule "src/R.tslib.backend"]
 	path = src/R.tslib.backend
 	url = git://repo.or.cz/R.tslib.backend.git
+[submodule "src/lim.tslib"]
+	path = src/lim.tslib
+	url = git://repo.or.cz/lim.tslib

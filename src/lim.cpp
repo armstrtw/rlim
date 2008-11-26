@@ -26,95 +26,26 @@
 #include "lim.hpp"
 
 using std::string;
-using std::cout;
+using std::cerr;
 using std::endl;
 
-const std::string rlim::safe_getenv(const char* env_var) {
-  std::string ans;
-
-  const char* var = getenv(env_var);
-
-  // only set ans if var is not NULL
-  if(var) {
-    ans.assign(var);
-  }
-
-  return ans;
-}
-
-
 const XmimClientHandle rlim::limConnect() {
-  XmimClientHandle handle;
-  const string lim_server = safe_getenv("LIM_SERVER");
-  const int lim_port = atoi(safe_getenv("LIM_PORT").c_str());
+  XmimClientHandle handle = static_cast<XmimClientHandle>(NULL);
 
-  // connect to LIM
-  if (lim_server.size() && XmimConnect (const_cast<char*>(lim_server.c_str()), lim_port, &handle) != XMIM_SUCCESS) {
-    cout << "problem connecting to LIM." << endl;
-    cout << "make sure LIM_SERVER and LIM_PORT are set in your environment." << endl;
-    handle = static_cast<XmimClientHandle>(0);
+  char* limServer = getenv("LIM_SERVER");
+  char* limPort_char = getenv("LIM_PORT");
+
+  if(limServer == NULL || limPort_char == NULL) {
+    cerr << "please make sure LIM_SERVER and LIM_PORT are defined in your environment." << endl;
+  } else {
+    int limPort = atoi(limPort_char);
+    if(XmimConnect(limServer, limPort, &handle)!= XMIM_SUCCESS) {
+      cerr << "failed to connect to lim" << endl;
+    }
   }
   return handle;
 }
 
-const XmimRelType rlim::getRelationType(const XmimClientHandle& handle, const char* relname) {
-  XmimRelType reltype;
-
-  if(XmimGetRelType (handle, const_cast<char*>(relname), &reltype) != XMIM_SUCCESS) {
-    XmimPrintError(const_cast<char*>("XmimGetRelType"));
-    reltype = XMIM_REL_INVALID;
-  }
-  return reltype;
-}
-
-const bool rlim::hasRows(const XmimClientHandle& handle, const char* relname, const XmimUnits units) {
-  XmimDate fromDate;
-  XmimDate toDate;
-  const char* colnames = "close";
-  int ncols = 1;
-
-  if(XmimGetDataRange(handle, const_cast<char*>(relname), ncols, const_cast<char**>(&colnames), units, &fromDate, &toDate) == XMIM_ERROR) {
-    XmimPrintError(const_cast<char*>("XmimVaGetRecordsRollover"));
-    return false;
-  }
-
-  if(fromDate.year == 0 || fromDate.month == 0 || fromDate.day == 0) {
-    return false;
-  }
-  return true;
-}
-
-/* Returns a list of the names of all the contracts available from the LIM */
-void rlim::getContracts(const XmimClientHandle& handle, std::set<string>& ans, const char* relname, const XmimUnits units, const int bars) {
-  std::set<string> tickers;
-
-  // read in all children
-  getAllChildren(handle, tickers, relname);
-
-  // drop out continuous contracts and such
-  // only accept actual futures contracts
-  for(std::set<string>::iterator it = tickers.begin(); it != tickers.end(); it++ ) {
-    if(getRelationType(handle, it->c_str()) == XMIM_REL_FUTURES_CONTRACT && hasRows(handle, it->c_str(), units)) {
-      ans.insert(*it);
-    }
-  }
-}
-
-/* Returns a list of the names of all the contracts available from the LIM */
-void rlim::getAllChildren(const XmimClientHandle& handle, std::set<string>& ans, const char* relname) {
-
-  int num_relnames;
-  XmimString* relnames;
-
-  if(XmimGetRelChildren(handle, const_cast<char*>(relname), &num_relnames, &relnames) != XMIM_SUCCESS) {
-    XmimPrintError(const_cast<char*>("XmimGetRelChildren"));
-    return;
-  }
-
-  for(int i = 0; i < num_relnames; i++) {
-    ans.insert(string(relnames[i]));
-  }
-}
 
 /* look up the month as an int
    that corresponds to the contract letter
@@ -157,33 +88,6 @@ const char rlim::getContractLetter(const int m) {
   return contracts[m-1];
 }
 
-void rlim::getRollDates(const XmimClientHandle& handle, std::map<std::string,XmimDate>& ans, const char* relname, const char* rollDay) {
-
-  int numContracts, numPeriods;
-  XmimDate *rollDates, *contracts;
-  std::string contractName;
-
-  if(XmimVaGetRolloverDates (XMIM_CLIENT_HANDLE, handle,
-                             XMIM_RELATION, const_cast<char*>(relname),
-                             XMIM_COLUMN_LIST, NULL,
-                             XMIM_UNITS, 1, XMIM_DAYS,
-                             XMIM_ROLLOVER_DAY, const_cast<char*>(rollDay),
-                             XMIM_NUM_CONTRACTS, &numContracts,
-                             XMIM_NUM_PERIODS, &numPeriods,
-                             XMIM_ROLL_DATES, &rollDates,
-                             XMIM_CONTRACTS, &contracts,
-                             XMIM_END_ARGS)!=XMIM_SUCCESS) {
-
-    XmimPrintError(const_cast<char*>("XmimVaGetRecordsRollover"));
-    return;
-  }
-
-  for(int i = 0; i < numPeriods; i++) {
-    makeContractName(contracts[i].year,contracts[i].month,contractName);
-    ans[contractName] = rollDates[i];
-  }
-}
-
 /* create a yyyymm string from integers year and month */
 void rlim::makeContractName(const int year, const int month, std::string& ans) {
 
@@ -196,48 +100,5 @@ void rlim::makeContractName(const int year, const int month, std::string& ans) {
   ans.assign(year_str + month_str);
 }
 
-const XmimDate rlim::getExpirationDate(const XmimClientHandle& handle, const char* contract) {
-  XmimDate ex_date;
-
-  if(XmimVaGetRelation (XMIM_CLIENT_HANDLE, handle,
-                        XMIM_RELATION,        contract,
-                        XMIM_EXPIRATION_DATE, &ex_date,
-                        XMIM_END_ARGS) != XMIM_SUCCESS) {
-    XmimPrintError(const_cast<char*>("XmimVaGetRelation"));
-
-    // set these to something nonsensical
-    ex_date.year  = 0;
-    ex_date.month = 0;
-    ex_date.day   = 0;
-  }
-
-  return ex_date;
-}
-
-// get the number of rows for a given individual futures contract
-// some contracts have no rows (stupid LIM), so we don't want to include those in our allocation
-// of storage space
-const XmimDate rlim::getFirstNoticeDate(const XmimClientHandle& handle, const char* contract) {
-  XmimDate first_notice_date;
-
-  if (XmimVaGetRecords(XMIM_CLIENT_HANDLE, handle,
-                       XMIM_RELATION, contract,
-                       XMIM_FIRST_NOTICE_DATE, &first_notice_date,
-                       XMIM_END_ARGS) != XMIM_SUCCESS) {
-    XmimPrintError(const_cast<char*>("XmimVaGetRecords"));
-  }
-  return first_notice_date;
-}
-
-const bool rlim::isFuturesContract(const XmimClientHandle& handle, const char* relname) {
-  XmimRelType reltype;
-
-  if(XmimGetRelType(handle, const_cast<char*>(relname), &reltype)!=XMIM_SUCCESS) {
-    XmimPrintError(const_cast<char*>("XmimGetRelType"));
-    return false;
-  }
-
-  return (reltype==XMIM_REL_FUTURES_CONTRACT) ? true : false;
-}
 
 
