@@ -76,18 +76,18 @@ const XmimClientHandle limConnect() {
 SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
   ts_type ans;
 
-  string relation_name = Rtype<STRSXP>::scalar(relation_name_sexp);
+  const char* relation_name = CHAR(Rtype<STRSXP>::scalar(relation_name_sexp));
 
   vector<string> colnames;
   sexp2string(colnames_sexp,inserter(colnames,colnames.begin()));
 
-  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
+  XmimUnits xmim_units = getUnits(CHAR(Rtype<STRSXP>::scalar(units_sexp)));
   int numUnits = Rtype<INTSXP>::scalar(numUnits_sexp);
 
   if(colnames.size()) {
-    ans = lim_tslib_interface::getRelation<double,double,R_len_t,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),colnames,xmim_units,numUnits);
+    ans = lim_tslib_interface::getRelation<double,double,R_len_t,R_Backend_TSdata,PosixDate>(handle, relation_name, colnames, xmim_units, numUnits);
   } else {
-    ans = lim_tslib_interface::getRelationAllCols<double,double,R_len_t,R_Backend_TSdata,PosixDate>(handle,relation_name.c_str(),xmim_units,numUnits);
+    ans = lim_tslib_interface::getRelationAllCols<double,double,R_len_t,R_Backend_TSdata,PosixDate>(handle, relation_name, xmim_units, numUnits);
   }
 
   return ans.getIMPL()->R_object;
@@ -96,28 +96,28 @@ SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, S
 SEXP getPerpetualSeries(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP rollDay_sexp, SEXP rollPolicy_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
   ts_type ans;
 
-  string relation_name = Rtype<STRSXP>::scalar(relation_name_sexp);
+  const char* relation_name = CHAR(Rtype<STRSXP>::scalar(relation_name_sexp));
 
   vector<string> colnames;
   sexp2string(colnames_sexp,inserter(colnames,colnames.begin()));
 
-  string rollDay = Rtype<STRSXP>::scalar(rollDay_sexp);
-  string rollPolicy = Rtype<STRSXP>::scalar(rollPolicy_sexp);
-  XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
+  const char* rollDay = CHAR(Rtype<STRSXP>::scalar(rollDay_sexp));
+  const char* rollPolicy = CHAR(Rtype<STRSXP>::scalar(rollPolicy_sexp));
+  XmimUnits xmim_units = getUnits(CHAR(Rtype<STRSXP>::scalar(units_sexp)));
   int numUnits = Rtype<INTSXP>::scalar(numUnits_sexp);
 
   if(!colnames.size()) {
     return R_NilValue;
   } else {
-    ans = lim_tslib_interface::getPerpetualSeries<double,double,R_len_t,R_Backend_TSdata,PosixDate>(handle, relation_name.c_str(), colnames, rollDay.c_str(), rollPolicy.c_str(), xmim_units, numUnits);
+    ans = lim_tslib_interface::getPerpetualSeries<double,double,R_len_t,R_Backend_TSdata,PosixDate>(handle, relation_name, colnames, rollDay, rollPolicy, xmim_units, numUnits);
   }
 
   return ans.getIMPL()->R_object;
 }
 
 SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
-  const char* relname = Rtype<STRSXP>::scalar(relname_sexp);
-  const XmimUnits xmim_units = getUnits(Rtype<STRSXP>::scalar(units_sexp));
+  const char* relname = CHAR(Rtype<STRSXP>::scalar(relname_sexp));
+  const XmimUnits xmim_units = getUnits(CHAR(Rtype<STRSXP>::scalar(units_sexp)));
   const int numUnits = Rtype<INTSXP>::scalar(numUnits_sexp);
   map<string,ts_type> ans_map;
   vector<XmimDate> ex_dates;
@@ -161,8 +161,8 @@ SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
 
 SEXP getAllChildren(SEXP relname_sexp) {
   vector<string> ans;
-  string relname = Rtype<STRSXP>::scalar(relname_sexp);
-  lim_tslib_interface::getAllChildren(handle, back_inserter(ans), relname.c_str());
+  const char* relname = CHAR(Rtype<STRSXP>::scalar(relname_sexp));
+  lim_tslib_interface::getAllChildren(handle, back_inserter(ans), relname);
   return string2sexp(ans.begin(),ans.end());
 }
 
