@@ -24,6 +24,7 @@
 const XmimClientHandle limConnect();
 const XmimUnits getUnits(const char* units);
 std::map<std::string, XmimUnits> init_units();
+void setExpriationDateAttribute(SEXP fut, double ex_date);
 
 // exported functions
 extern "C" {
