@@ -115,14 +115,14 @@ SEXP getPerpetualSeries(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP rollDa
   return ans.getIMPL()->R_object;
 }
 
-void setExpriationDateAttribute(SEXP fut, double ex_date) {
+void setExpirationDateAttribute(SEXP fut, double ex_date) {
   RAbstraction::RVector<REALSXP> expirationDate(1);
   expirationDate(0) = ex_date;
   vector<string> dts_class;
   dts_class.push_back("POSIXt");
   dts_class.push_back("POSIXct");
   expirationDate.setClass(dts_class.begin(),dts_class.end());
-  setAttrib(fut, install("expriationDate"), expirationDate.getSEXP());
+  setAttrib(fut, install("expirationDate"), expirationDate.getSEXP());
 }
 
 SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
@@ -157,7 +157,7 @@ SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
   
   i = 0;
   for(map<string,ts_type>::iterator iter = ans_map.begin(); iter != ans_map.end(); iter++, i++) {
-    setExpriationDateAttribute(iter->second.getIMPL()->R_object,expirationDates[i]);
+    setExpirationDateAttribute(iter->second.getIMPL()->R_object,expirationDates[i]);
     SET_VECTOR_ELT(ans.getSEXP(), i, iter->second.getIMPL()->R_object);
     //ans(i) = iter->second.getIMPL()->R_object;
   }
