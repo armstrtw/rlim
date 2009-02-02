@@ -14,8 +14,8 @@ get.ohlc <- function(relname, colnames=c("open","high","low","close"), units="da
   .Call("getRelation", relname, colnames, units, as.integer(bars), PACKAGE="RLIM")
 }
 
-get.futures.series <- function(relname, units="days", bars=1) {
-    .Call("getFuturesSeries", relname, units, as.integer(bars))
+get.futures.series <- function(relname, units="days", bars=1, rollPolicy="open_interest crossover") {
+    .Call("getFuturesSeries", relname, units, as.integer(bars), rollPolicy)
 }
 
 get.coms <- function(relname,

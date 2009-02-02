@@ -125,17 +125,18 @@ void setExpirationDateAttribute(SEXP fut, double ex_date) {
   setAttrib(fut, install("expirationDate"), expirationDate.getSEXP());
 }
 
-SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
+SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp, SEXP rollPolicy_sexp) {
   int i;
   const char* relname = CHAR(Rtype<STRSXP>::scalar(relname_sexp));
   const XmimUnits xmim_units = getUnits(CHAR(Rtype<STRSXP>::scalar(units_sexp)));
   const int numUnits = Rtype<INTSXP>::scalar(numUnits_sexp);
+  const char* rollPolicy = CHAR(Rtype<STRSXP>::scalar(rollPolicy_sexp));
   map<string,ts_type> ans_map;
   vector<XmimDate> ex_dates;
   vector<XmimDate> roll_dates;
 
   lim_tslib_interface::getFuturesSeries<double,double,R_len_t,R_Backend_TSdata,PosixDate>(handle,ans_map,relname,xmim_units,numUnits);
-  lim_tslib_interface::getRollDates(handle, back_inserter(roll_dates), relname, "open_interest crossover");
+  lim_tslib_interface::getRollDates(handle, back_inserter(roll_dates), relname, rollPolicy);
 
   RAbstraction::RVector<REALSXP> rollDates(roll_dates.size());
   i = 0;
