@@ -126,13 +126,22 @@ void setExpirationDateAttribute(SEXP fut, double ex_date) {
 }
 
 SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
+  int i;
   const char* relname = CHAR(Rtype<STRSXP>::scalar(relname_sexp));
   const XmimUnits xmim_units = getUnits(CHAR(Rtype<STRSXP>::scalar(units_sexp)));
   const int numUnits = Rtype<INTSXP>::scalar(numUnits_sexp);
   map<string,ts_type> ans_map;
   vector<XmimDate> ex_dates;
+  vector<XmimDate> roll_dates;
 
   lim_tslib_interface::getFuturesSeries<double,double,R_len_t,R_Backend_TSdata,PosixDate>(handle,ans_map,relname,xmim_units,numUnits);
+  lim_tslib_interface::getRollDates(handle, back_inserter(roll_dates), relname, "open_interest crossover");
+
+  RAbstraction::RVector<REALSXP> rollDates(roll_dates.size());
+  i = 0;
+  for(vector<XmimDate>::iterator iter = roll_dates.begin(); iter != roll_dates.end(); iter++, i++) {
+    rollDates[i] = PosixDate<double>::toDate(iter->year,iter->month,iter->day,0,0,0,0);
+  }
   
   // extract individual contract names
   vector<string> contractNames;
@@ -145,7 +154,7 @@ SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
 
   lim_tslib_interface::getExpirationDates(handle, back_inserter(ex_dates), contractNames.begin(),contractNames.end());
   RAbstraction::RVector<REALSXP> expirationDates(ex_dates.size());
-  int i = 0;
+  i = 0;
   for(vector<XmimDate>::iterator iter = ex_dates.begin(); iter != ex_dates.end(); iter++, i++) {
     expirationDates[i] = PosixDate<double>::toDate(iter->year,iter->month,iter->day,0,0,0,0);
   }
@@ -154,6 +163,7 @@ SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
   dts_class.push_back("POSIXt");
   dts_class.push_back("POSIXct");
   expirationDates.setClass(dts_class.begin(),dts_class.end());
+  rollDates.setClass(dts_class.begin(),dts_class.end());
   
   i = 0;
   for(map<string,ts_type>::iterator iter = ans_map.begin(); iter != ans_map.end(); iter++, i++) {
@@ -166,6 +176,7 @@ SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
   ans.setNames(contractNames.begin(),contractNames.end());
   // set expirationDates of ans
   ans.setAttribute("expirationDates",expirationDates.getSEXP());
+  ans.setAttribute("rollDates",rollDates.getSEXP());
 
   return ans.getSEXP();
 }
