@@ -181,13 +181,6 @@ SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
   return ans.getSEXP();
 }
 
-SEXP getAllChildren(SEXP relname_sexp) {
-  vector<string> ans;
-  const char* relname = CHAR(Rtype<STRSXP>::scalar(relname_sexp));
-  lim_tslib_interface::getAllChildren(handle, back_inserter(ans), relname);
-  return string2sexp(ans.begin(),ans.end());
-}
-
 const XmimUnits getUnits(const char* units) {
   static map<string, XmimUnits> units_map = init_units();
 

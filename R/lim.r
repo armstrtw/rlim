@@ -18,10 +18,6 @@ get.futures.series <- function(relname, units="days", bars=1) {
     .Call("getFuturesSeries", relname, units, as.integer(bars))
 }
 
-get.all.children <- function(relname) {
-    .Call("getAllChildren", relname)
-}
-
 get.coms <- function(relname,
                      colnames=c("open","high","low","close","volume","OpenInterest"),
                      rollDay="open_interest crossover",

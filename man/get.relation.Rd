@@ -5,7 +5,6 @@
 \alias{get.futures.series}
 \alias{get.coms}
 \alias{get.ohlc}
-\alias{get.all.children}
 \title{Read data from lim}
 \description{
 reads any tseries type object form LIM
@@ -17,7 +16,6 @@ rollDay="open_interest crossover",rollPolicy="Actual Prices",units="days",bars=1
 get.coms(relname, colnames=c("open","high","low","close","volume","OpenInterest"), rollDay="open_interest crossover", units="days", bars=1)
 get.ohlc(relname,colnames=c("open","high","low","close"),units="days",bars=1)
 get.futures.series(relname, units="days", bars=1)
-get.all.children(relname)
 }
 
 \arguments{
@@ -50,7 +48,6 @@ ty.p1 <- get.perpetual.series("TY",rollDay="1 day after open_interest crossover"
 
 ty.adj <- get.perpetual.series("TY",rollDay="open_interest crossover",rollPolicy="backward adjusted prices")
 
-ty.contracts <- get.all.children("TY")
 }
 \keyword{ts}
 
