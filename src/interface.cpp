@@ -125,60 +125,40 @@ void setExpirationDateAttribute(SEXP fut, double ex_date) {
   setAttrib(fut, install("expirationDate"), expirationDate.getSEXP());
 }
 
-SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp, SEXP rollPolicy_sexp) {
-  int i;
+SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
   const char* relname = CHAR(Rtype<STRSXP>::scalar(relname_sexp));
   const XmimUnits xmim_units = getUnits(CHAR(Rtype<STRSXP>::scalar(units_sexp)));
   const int numUnits = Rtype<INTSXP>::scalar(numUnits_sexp);
-  const char* rollPolicy = CHAR(Rtype<STRSXP>::scalar(rollPolicy_sexp));
   map<string,ts_type> ans_map;
-  vector<XmimDate> ex_dates;
-  vector<XmimDate> roll_dates;
+  vector<XmimDate> expirationDates;
 
+
+  // pull data
   lim_tslib_interface::getFuturesSeries<double,double,R_len_t,R_Backend_TSdata,PosixDate>(handle,ans_map,relname,xmim_units,numUnits);
-  lim_tslib_interface::getRollDates(handle, back_inserter(roll_dates), relname, rollPolicy);
-
-  RAbstraction::RVector<REALSXP> rollDates(roll_dates.size());
-  i = 0;
-  for(vector<XmimDate>::iterator iter = roll_dates.begin(); iter != roll_dates.end(); iter++, i++) {
-    rollDates[i] = PosixDate<double>::toDate(iter->year,iter->month,iter->day,0,0,0,0);
-  }
-  
-  // extract individual contract names
+  // extract contract names
   vector<string> contractNames;
   for(map<string,ts_type>::iterator iter = ans_map.begin(); iter != ans_map.end(); iter++) {
     contractNames.push_back(iter->first);
   }
+  // pull expriation dates
+  lim_tslib_interface::getExpirationDates(handle, back_inserter(expirationDates), contractNames.begin(),contractNames.end());
+
+  if(expirationDates.size() != ans_map.size()) {
+    cerr << "ERROR: getFuturesSeries: expirationDates.size() != ans_map.size()" << endl;
+    return R_NilValue;
+  }
 
   RAbstraction::RVector<VECSXP> ans(ans_map.size());
   ans.setClass("com");
-
-  lim_tslib_interface::getExpirationDates(handle, back_inserter(ex_dates), contractNames.begin(),contractNames.end());
-  RAbstraction::RVector<REALSXP> expirationDates(ex_dates.size());
-  i = 0;
-  for(vector<XmimDate>::iterator iter = ex_dates.begin(); iter != ex_dates.end(); iter++, i++) {
-    expirationDates[i] = PosixDate<double>::toDate(iter->year,iter->month,iter->day,0,0,0,0);
-  }
-  // create and add dates class to dates object
-  vector<string> dts_class;
-  dts_class.push_back("POSIXt");
-  dts_class.push_back("POSIXct");
-  expirationDates.setClass(dts_class.begin(),dts_class.end());
-  rollDates.setClass(dts_class.begin(),dts_class.end());
-  
-  i = 0;
-  for(map<string,ts_type>::iterator iter = ans_map.begin(); iter != ans_map.end(); iter++, i++) {
-    setExpirationDateAttribute(iter->second.getIMPL()->R_object,expirationDates[i]);
-    SET_VECTOR_ELT(ans.getSEXP(), i, iter->second.getIMPL()->R_object);
-    //ans(i) = iter->second.getIMPL()->R_object;
-  }
-
-  // set names of ans: FIXME: extract names from map
   ans.setNames(contractNames.begin(),contractNames.end());
-  // set expirationDates of ans
-  ans.setAttribute("expirationDates",expirationDates.getSEXP());
-  ans.setAttribute("rollDates",rollDates.getSEXP());
 
+  // set expiration dates of each contract
+  vector<XmimDate>::iterator ex_dates_iter = expirationDates.begin();
+  int i = 0;
+  for(map<string,ts_type>::iterator ans_iter = ans_map.begin(); ans_iter != ans_map.end(); ans_iter++, ex_dates_iter++, i++) {
+    setExpirationDateAttribute(ans_iter->second.getIMPL()->R_object, PosixDate<double>::toDate(ex_dates_iter->year,ex_dates_iter->month,ex_dates_iter->day,0,0,0,0));
+    SET_VECTOR_ELT(ans.getSEXP(), i, ans_iter->second.getIMPL()->R_object);
+  }
   return ans.getSEXP();
 }
 
