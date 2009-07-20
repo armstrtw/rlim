@@ -33,4 +33,5 @@ extern "C" {
   SEXP getRelation(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP units_sexp, SEXP numUnits_sexp);
   SEXP getPerpetualSeries(SEXP relation_name_sexp, SEXP colnames_sexp, SEXP rollDay_sexp, SEXP rollPolicy_sexp, SEXP units_sexp, SEXP numUnits_sexp);
   SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp);
+  SEXP getContractNames(SEXP relname_sexp, SEXP units_sexp);
 }

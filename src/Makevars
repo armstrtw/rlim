@@ -1,4 +1,4 @@
-XMIM_DIR     = /home/lim/xmim
+XMIM_DIR     = /opt/lim.d/lim/xmim
 
 XMIM_LIBDIR  = $(XMIM_DIR)/lib
 XMIM_INCDIR  = $(XMIM_DIR)/include

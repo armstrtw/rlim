@@ -199,3 +199,13 @@ map<string, XmimUnits> init_units() {
 
   return ans;
 }
+
+SEXP getContractNames(SEXP relname_sexp, SEXP units_sexp) {
+  const char* relname = CHAR(Rtype<STRSXP>::scalar(relname_sexp));
+  const XmimUnits xmim_units = getUnits(CHAR(Rtype<STRSXP>::scalar(units_sexp)));
+
+  vector<string> ans;
+  lim_tslib_interface::getContractNames(handle, back_inserter(ans), relname, xmim_units);
+
+  return string2sexp(ans.begin(),ans.end());
+}
