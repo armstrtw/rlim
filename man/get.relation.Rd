@@ -13,7 +13,6 @@ reads any tseries type object form LIM
 get.relation(relname,colnames=NULL,units="days",bars=1)
 get.perpetual.series(relname,colnames=c("open","high","low","close","volume","OpenInterest"),
 rollDay="open_interest crossover",rollPolicy="Actual Prices",units="days",bars=1)
-get.coms(relname, colnames=c("open","high","low","close","volume","OpenInterest"), rollDay="open_interest crossover", units="days", bars=1)
 get.ohlc(relname,colnames=c("open","high","low","close"),units="days",bars=1)
 get.futures.series(relname, units="days", bars=1, rollPolicy="open_interest crossover")
 }
