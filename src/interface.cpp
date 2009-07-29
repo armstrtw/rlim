@@ -125,6 +125,14 @@ void setExpirationDateAttribute(SEXP fut, double ex_date) {
   setAttrib(fut, install("expirationDate"), expirationDate.getSEXP());
 }
 
+void setTickerAttribute(SEXP fut, const string ticker) {
+  SEXP ticker_sexp;
+  PROTECT(ticker_sexp = allocVector(STRSXP, 1));
+  SET_STRING_ELT(ticker_sexp, 0, mkChar(ticker.c_str()));
+  setAttrib(fut, install("ticker"), ticker_sexp);
+  UNPROTECT(1);
+}
+
 SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
   const char* relname = CHAR(Rtype<STRSXP>::scalar(relname_sexp));
   const XmimUnits xmim_units = getUnits(CHAR(Rtype<STRSXP>::scalar(units_sexp)));
@@ -157,6 +165,7 @@ SEXP getFuturesSeries(SEXP relname_sexp, SEXP units_sexp, SEXP numUnits_sexp) {
   int i = 0;
   for(map<string,ts_type>::iterator ans_iter = ans_map.begin(); ans_iter != ans_map.end(); ans_iter++, ex_dates_iter++, i++) {
     setExpirationDateAttribute(ans_iter->second.getIMPL()->R_object, PosixDate<double>::toDate(ex_dates_iter->year,ex_dates_iter->month,ex_dates_iter->day,0,0,0,0));
+    setTickerAttribute(ans_iter->second.getIMPL()->R_object, ans_iter->first);
     SET_VECTOR_ELT(ans.getSEXP(), i, ans_iter->second.getIMPL()->R_object);
   }
   return ans.getSEXP();

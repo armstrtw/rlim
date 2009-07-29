@@ -25,6 +25,7 @@ const XmimClientHandle limConnect();
 const XmimUnits getUnits(const char* units);
 std::map<std::string, XmimUnits> init_units();
 void setExpirationDateAttribute(SEXP fut, double ex_date);
+void setTickerAttribute(SEXP fut, const std::string ticker);
 
 // exported functions
 extern "C" {
